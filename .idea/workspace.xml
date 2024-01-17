@@ -4,13 +4,39 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a7a89a36-9927-4723-8803-07824fad5676" name="Changes" comment="" />
+    <list default="true" id="a7a89a36-9927-4723-8803-07824fad5676" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/scala/jobs/CoordinateConverter.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/sbt.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sbt.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/Main1.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/Main1.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/Main5.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/Main5.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/GameMap.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/GameMap.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/GameMapImpl.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/GameMapImpl.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/MovementImpl.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/MovementImpl.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/PhaseManagerImpl.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/PhaseManagerImpl.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/RangeAttackManager.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/RangeAttackManager.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Character.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Character.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Characters.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Characters.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Map.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Map.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Maps.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Maps.scala" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Phases.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Phases.scala" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$">
+      <ProjectState />
+    </projectState>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="ProjectCodeStyleSettingsMigration">
@@ -25,9 +51,27 @@
   <component name="PropertiesComponent"><![CDATA[{
   "keyToString": {
     "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true"
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "SHARE_PROJECT_CONFIGURATION_FILES": "true"
   }
 }]]></component>
+  <component name="RunManager">
+    <configuration name="Main1" type="Application" factoryName="Application" temporary="true">
+      <option name="MAIN_CLASS_NAME" value="Main1" />
+      <module name="basic-warhammer40k" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main1" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="ScalaProjectSettings">
+    <option name="scala3DisclaimerShown" value="true" />
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">

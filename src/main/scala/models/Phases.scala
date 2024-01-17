@@ -1,3 +1,8 @@
 package models
 
-case class Phases()
+case class Phases(
+                   move: Boolean,
+                   rangeAttack: Boolean,
+                   closeCombatAttack: Boolean,
+                   victoryCheck: Boolean
+                 )
