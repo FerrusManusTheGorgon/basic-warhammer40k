@@ -5,21 +5,9 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a7a89a36-9927-4723-8803-07824fad5676" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/scala/jobs/CoordinateConverter.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/sbt.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/sbt.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/Main1.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/Main1.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/Main5.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/Main5.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/GameMap.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/GameMap.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/GameMapImpl.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/GameMapImpl.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/MovementImpl.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/MovementImpl.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/PhaseManagerImpl.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/PhaseManagerImpl.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/jobs/RangeAttackManager.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/jobs/RangeAttackManager.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Character.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Character.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Characters.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Characters.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Map.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Map.scala" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/scala/models/Maps.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Maps.scala" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/scala/models/Phases.scala" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/scala/models/Phases.scala" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -81,6 +69,18 @@
       <option name="presentableId" value="Default" />
       <updated>1704832184648</updated>
     </task>
+    <task id="LOCAL-00001" summary="the basic tasks of printing the map and moving character appear to function.  Currentky having issues checking range.">
+      <created>1705524819493</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1705524819493</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="the basic tasks of printing the map and moving character appear to function.  Currentky having issues checking range." />
+    <option name="LAST_COMMIT_MESSAGE" value="the basic tasks of printing the map and moving character appear to function.  Currentky having issues checking range." />
   </component>
 </project>

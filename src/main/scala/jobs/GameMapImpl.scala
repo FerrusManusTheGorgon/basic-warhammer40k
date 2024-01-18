@@ -8,12 +8,12 @@ class GameMap(mapData: Map[String, Any]) {
   val blockedCoordinates: List[(Int, Int)] = mapData("Blocker").asInstanceOf[List[(Int, Int)]]
   // Define initial positions
   val spaceMarinePos = (1, 2)
-  val orkPos = (4, 4)
+  val orkPos = (4, 5)
 
   val spaceMarine: Character = Characters.SpaceMarine
   val ork: Character = Characters.Ork
 
-  val map: Array[Array[String]] = Array.fill(horizontalLength, verticalLength)("")
+  val map: Array[Array[String]] = Array.fill(horizontalLength + 4, verticalLength + 4)("")
 
   // New method for coordinate conversion
   def convertCoordinates(coord: (Int, Int)): (Int, Int) = {
@@ -59,14 +59,16 @@ class GameMap(mapData: Map[String, Any]) {
     // Print the list of coordinates and contents (including blocked coordinates)
     println("\nCell Contents and Coordinates:")
     for {
-      i <- 0 until horizontalLength
-      j <- 0 until verticalLength
+      i <- 1 until horizontalLength + 1
+      j <- 1 until verticalLength + 1
     } {
-      val coord = convertCoordinates((j, i))
-      println(s"($j, $i): ${map(i)(j)}")
+      println(s"($j, $i): ${map(j + 0)(i + 0)}")
     }
+
   }
 }
+
+
 
 //// Usage
 //val mapConfig = Map(
