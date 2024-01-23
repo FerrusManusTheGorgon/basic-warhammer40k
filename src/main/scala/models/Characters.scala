@@ -1,9 +1,9 @@
 package models
 
-import models.Character
-case object Characters {
+import models.GameCharacter
+object Characters {
 
-  val SpaceMarine = Character(
+  val SpaceMarine = GameCharacter(
     characterId = "a617321a-7ad6-11ee-afff-325096b39f47",
     ballisticSkill = 90,
     range = 10,
@@ -12,7 +12,7 @@ case object Characters {
     avatar = "S"
   )
 
-  val Ork = Character(
+  val Ork = GameCharacter(
     characterId = "a0d58842-7ad6-11ee-b72f-325096b39f47",
     ballisticSkill = 20,
     range = 5,

@@ -1,6 +1,6 @@
 package models
 
-case class Character(
+case class GameCharacter(
                       characterId: String,
                       range: Int,
                       ballisticSkill: Int,

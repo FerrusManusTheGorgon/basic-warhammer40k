@@ -1,6 +1,6 @@
 package jobs
 
-import models.{Character, Characters, Maps, Phases}
+import models.{GameCharacter, Characters, Maps, Phases}
 
 class PhaseManagerImpl {
   var currentPhase: Phases = Phases(move = true, rangeAttack = false, closeCombatAttack = false, victoryCheck = false)

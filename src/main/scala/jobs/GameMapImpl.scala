@@ -1,6 +1,6 @@
 package jobs
 
-import models.{Character, Characters, Maps}
+import models.{GameCharacter, Characters, Maps}
 
 class GameMap(mapData: Map[String, Any]) {
   val horizontalLength: Int = mapData("HorizontalLength").asInstanceOf[Int]
@@ -10,8 +10,8 @@ class GameMap(mapData: Map[String, Any]) {
   val spaceMarinePos = (1, 2)
   val orkPos = (4, 5)
 
-  val spaceMarine: Character = Characters.SpaceMarine
-  val ork: Character = Characters.Ork
+  val spaceMarine: GameCharacter = Characters.SpaceMarine
+  val ork: GameCharacter = Characters.Ork
 
   val map: Array[Array[String]] = Array.fill(horizontalLength + 4, verticalLength + 4)("")
 
@@ -20,7 +20,7 @@ class GameMap(mapData: Map[String, Any]) {
     ((coord._2 - 0), coord._1 - 1)
   }
 
-  def initializeMap(sPos: (Int, Int), oPos: (Int, Int), spaceMarine: Character, ork: Character): Unit = {
+  def initializeMap(sPos: (Int, Int), oPos: (Int, Int), spaceMarine: GameCharacter, ork: GameCharacter): Unit = {
     for (i <- 0 until horizontalLength; j <- 0 until verticalLength)
       map(i)(j) = ""
 
