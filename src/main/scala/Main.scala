@@ -30,33 +30,30 @@ object Main extends App {
    */
 
 
-//  case class Coordinates(x: Int, y: Int)
+
+ val ALIVE_STATE: String = "alive"
+  val DEAD_STATE: String = "dead"
 
 
+  val player1Unit: GameCharacter = Characters.SpaceMarine
+  val player1UnitLocation: Coordinates = Coordinates(3, 4)
 
- val ALIVE_STATE = "alive"
-  val DEAD_STATE = "dead"
-
-
-  val player1Unit = Characters.SpaceMarine
-  val player1UnitLocation = Coordinates(3, 4)
-  
-  val unit1 = GameUnit(
-    player1Unit,
-    player1UnitLocation,
-    ALIVE_STATE
+  val unit1: GameUnit = GameUnit(
+    character = player1Unit,
+    coordinates = player1UnitLocation,
+    state = ALIVE_STATE
   )
 
-  val player2Unit = Characters.Ork
-  val player2UnitLocation = Coordinates(6, 8)
-  7,8 5,8 6,7 6,9
-  
-  
+  val player2Unit: GameCharacter = Characters.Ork
+  val player2UnitLocation: Coordinates = Coordinates(6, 8)
 
-  val unit2 = GameUnit(
-    player2Unit,
-    player2UnitLocation,
-    ALIVE_STATE
+
+
+
+  val unit2: GameUnit = GameUnit(
+    character = player2Unit,
+    coordinates = player2UnitLocation,
+    state = ALIVE_STATE
   )
 
   val mapWeAreUsing = Maps.RockyDivide
@@ -71,10 +68,10 @@ object Main extends App {
              isPlayer1First: Boolean
            ) : Unit = {
 
+    movement(map, unit1, unit2)
 
-    
     //map.layout
-    map.printMap(unit1, unit2)
+
 
 
   }
@@ -93,57 +90,51 @@ object Main extends App {
      * if invalid
      *    we want to retry ask for input
      */
+//    map.printMap(unit1, unit2)
+    printBoard(map, unit1, unit2)
 
-
-???
+    activePlayerUnit
 
   }
+
 
   def printBoard(
-                  map: MapConfig,
-                  activePlayerUnit: GameUnit,
-                  passivePlayerUnit: GameUnit,
-                  includeActiveMovementRange: Boolean = false,
-                  includeActiveShootingRange: Boolean = false
-                ) = {
+                map: MapConfig,
+                activePlayerUnit: GameUnit,
+                passivePlayerUnit: GameUnit,
+                includeActiveMovementRange: Boolean = false,
+                includeActiveShootingRange: Boolean = false
+              ): Unit = {
+    val currentMap = map.layout + (
+      activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
+      passivePlayerUnit.coordinates -> passivePlayerUnit.character.avatar
+    )
 
-//    //print top numbers
-//    println("" + (0 until verticalLength).map(i => f"$i%4d").mkString("  "))
-//    //print barrier
-//    println("------+" + ("-----+" * verticalLength))
-???
+    val movementRange = if (includeActiveMovementRange) {
+      //call method to check range here
+      //input unit (need current location, and movement), and currentMap: returns Map[Coordinates, String]
+      Map.empty[Coordinates, String]
+    } else Map.empty[Coordinates, String]
+
+    val shootingRange = if (includeActiveMovementRange) {
+      Map.empty[Coordinates, String]
+    } else Map.empty[Coordinates, String]
+
+    val boardState = currentMap
+      ++ movementRange
+      ++ shootingRange
+
+    println(map.HORIZONTAL_BORDER)
+
+    map.VERTICAL_RANGE.reverse.foreach { y =>
+      val row = map.HORIZONTAL_RANGE.map { x =>
+        s"|  ${boardState(Coordinates(x, y))}  "
+      }.reduce((a, b) => a + b)
+      println(f"$y%4d  " + row + "|")
+      println(map.HORIZONTAL_BORDER)
+    }
+
+    println("      " + map.HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
   }
-//
-//  def printMap(): Unit = {
-//    // Print top row numbers
-//    println("" + (0 until verticalLength).map(i => f"$i%4d").mkString("  "))
-//    println("------+" + ("-----+" * verticalLength))
-//    for (i <- 1 until horizontalLength) {
-//      print(f"$i%4d  | ")
-//      for (j <- 0 until verticalLength) {
-//        map(i)(j) match {
-//          case Characters.SpaceMarine.avatar => print(s" ${Characters.SpaceMarine.avatar}  | ")
-//          case Characters.Ork.avatar => print(s" ${Characters.Ork.avatar}  | ")
-//          case "X" => print(" X  | ") // Represents a blocked coordinate
-//          case _ => print("    | ")
-//        }
-//      }
-//      println("\n------+" + ("-----+" * verticalLength))
-//    }
-//
-//    // Print the list of coordinates and contents (including blocked coordinates)
-//    println("\nCell Contents and Coordinates:")
-//    for {
-//      i <- 1 until horizontalLength + 1
-//      j <- 1 until verticalLength + 1
-//    } {
-//      println(s"($j, $i): ${map(j + 0)(i + 0)}")
-//    }
-//
-//  }
-
-
-
-
 
 }
