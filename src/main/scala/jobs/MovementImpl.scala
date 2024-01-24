@@ -2,7 +2,7 @@ package jobs
 
 import scala.collection.mutable.Queue
 import scala.io.StdIn
-import models.{Character, Characters, MapConfig, Maps}
+import models.{GameCharacter, Characters, MapConfig, Maps}
 import models.Maps._
 
 class MovementImpl(map: MapConfig) {
