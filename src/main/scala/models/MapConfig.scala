@@ -31,6 +31,11 @@ case class MapConfig(
     }
   }
 
+  def isWithinBounds(coordinates: Coordinates): Boolean = {
+    coordinates.x >= 1 && coordinates.x <= horizontalLength &&
+      coordinates.y >= 1 && coordinates.y <= verticalLength
+  }
+
   //  def printMap(
   //                activePlayerUnit: GameUnit,
   //                passivePlayerUnit: GameUnit,
