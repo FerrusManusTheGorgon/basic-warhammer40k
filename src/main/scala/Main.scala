@@ -36,6 +36,7 @@ object Main extends App {
   val DEAD_STATE: String = "dead"
 
 
+
   val player1Unit: GameCharacter = Characters.SpaceMarine
   val player1UnitLocation: Coordinates = Coordinates(3, 4)
 
@@ -60,8 +61,12 @@ object Main extends App {
   val mapWeAreUsing = Maps.RockyDivide
   val isPlayer1First = true
 
+
   start(unit1, unit2, mapWeAreUsing, isPlayer1First)
 
+  // Create an instance of CloseCombatManager
+  val closeCombatManager = new CloseCombatManager(mapWeAreUsing, unit1, unit2)
+  val rangeAttackManager = new RangeAttackManager2(mapWeAreUsing, unit1, unit2)
   def start(
              unit1: GameUnit,
              unit2: GameUnit,
@@ -73,16 +78,39 @@ object Main extends App {
 
     //map.layout
 
+//    // Handle player movement
+//    activePlayerUnit = movement(map, activePlayerUnit, passivePlayerUnit)
+//
+//    // Handle range attack
+//    rangeAttack(map, activePlayerUnit, passivePlayerUnit)
+//
+//    // Handle close combat attack
+//    closeCombatAttack(map, activePlayerUnit, passivePlayerUnit)
 
+
+    // Check for victory
+    checkVictory(map).foreach { result =>
+      println(result)
+      return // End the game
 
   }
 
 
+  @tailrec
   def movement(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): GameUnit = {
+    println("Enter coordinates (format: x y)")
     val input: String = StdIn.readLine()
-    // Assuming Coordinates has a constructor that takes two Int parameters
     val newCoordinates: Coordinates = parseCoordinates(input)
-    movementHelper(map, newCoordinates, activePlayerUnit)
+
+    if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
+      // If the move is valid, return the current GameUnit with updated coordinates
+      val updatedUnit = activePlayerUnit.copy(coordinates = newCoordinates)
+      movementHelper(map, newCoordinates, updatedUnit)
+    } else {
+      // If the move is not valid, ask the player to enter new coordinates
+      println("Invalid coordinates. Please enter valid coordinates.")
+      movement(map, activePlayerUnit, passivePlayerUnit)
+    }
   }
 
   // Parse string input into Coordinates because "input: String = StdIn.readLine()" is a string
@@ -91,23 +119,13 @@ object Main extends App {
     Coordinates(x, y)
   }
 
-  @scala.annotation.tailrec
-  private def movementHelper(map: MapConfig, newCoordinates: Coordinates, currentUnit: GameUnit): GameUnit = {
-    if (isValidMove(map, newCoordinates)) {
-      // If the move is valid, return the current GameUnit with updated coordinates
-      currentUnit.copy(coordinates = newCoordinates)
-    } else {
-      // If the move is not valid, return the current GameUnit unchanged
-      currentUnit
-    }
-  }
 
-  private def isValidMove(map: MapConfig, newCoordinates: Coordinates): Boolean = {
-    map.isWithinBounds(newCoordinates) && bfsShortestPath(map, activePlayerUnit, passivePlayerUnit, maxMovement).isDefined
+  private def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Boolean = {
+    map.isWithinBounds(newCoordinates) && getShortestPath(map, activePlayerUnit, passivePlayerUnit, maxMovement).isDefined
   }
 
 
-  def bfsShortestPath(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit, maxMovement: Int): Option[List[Coordinates]] = {
+  def getShortestPath(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit, maxMovement: Int): Option[List[Coordinates]] = {
     val start = activePlayerUnit.coordinates
     val end = passivePlayerUnit.coordinates
 
@@ -230,7 +248,13 @@ object Main extends App {
     }
 
     println("      " + map.HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
+
+
+    rangeAttackManager.checkRangedAttack(unit1.coordinates, unit2.coordinates)
+    // Call initiateCloseCombatAttack method
+    closeCombatManager.initiateCloseCombatAttack()
   }
 
-}
+
+
 
