@@ -1,5 +1,7 @@
 import game.{Coordinates, GameUnit}
+import jobs.CheckVictoryConditions
 import models.{Characters, GameCharacter, MapConfig, Maps}
+import scala.collection.mutable.Queue
 import scala.io.StdIn
 
 object Main extends App {
@@ -31,10 +33,8 @@ object Main extends App {
    */
 
 
-
- val ALIVE_STATE: String = "alive"
+  val ALIVE_STATE: String = "alive"
   val DEAD_STATE: String = "dead"
-
 
 
   val player1Unit: GameCharacter = Characters.SpaceMarine
@@ -50,8 +50,6 @@ object Main extends App {
   val player2UnitLocation: Coordinates = Coordinates(6, 8)
 
 
-
-
   val unit2: GameUnit = GameUnit(
     character = player2Unit,
     coordinates = player2UnitLocation,
@@ -61,42 +59,16 @@ object Main extends App {
   val mapWeAreUsing = Maps.RockyDivide
   val isPlayer1First = true
 
-
+  val victoryChecker = new CheckVictoryConditions
+  //rangeattackMamnager and attacker manager need rto look like victory checker
   start(unit1, unit2, mapWeAreUsing, isPlayer1First)
 
   // Create an instance of CloseCombatManager
-  val closeCombatManager = new CloseCombatManager(mapWeAreUsing, unit1, unit2)
-  val rangeAttackManager = new RangeAttackManager2(mapWeAreUsing, unit1, unit2)
-  def start(
-             unit1: GameUnit,
-             unit2: GameUnit,
-             map: MapConfig,
-             isPlayer1First: Boolean
-           ) : Unit = {
-
-    movement(map, unit1, unit2)
-
-    //map.layout
-
-//    // Handle player movement
-//    activePlayerUnit = movement(map, activePlayerUnit, passivePlayerUnit)
-//
-//    // Handle range attack
-//    rangeAttack(map, activePlayerUnit, passivePlayerUnit)
-//
-//    // Handle close combat attack
-//    closeCombatAttack(map, activePlayerUnit, passivePlayerUnit)
+  //  val closeCombatManager = ??? //new CloseCombatManager(mapWeAreUsing, unit1, unit2)
+  //  val rangeAttackManager = ??? //new RangeAttackManager2(mapWeAreUsing, unit1, unit2)
 
 
-    // Check for victory
-    checkVictory(map).foreach { result =>
-      println(result)
-      return // End the game
-
-  }
-
-
-  @tailrec
+  @scala.annotation.tailrec
   def movement(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): GameUnit = {
     println("Enter coordinates (format: x y)")
     val input: String = StdIn.readLine()
@@ -104,8 +76,8 @@ object Main extends App {
 
     if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
       // If the move is valid, return the current GameUnit with updated coordinates
-      val updatedUnit = activePlayerUnit.copy(coordinates = newCoordinates)
-      movementHelper(map, newCoordinates, updatedUnit)
+      activePlayerUnit.copy(coordinates = newCoordinates)
+
     } else {
       // If the move is not valid, ask the player to enter new coordinates
       println("Invalid coordinates. Please enter valid coordinates.")
@@ -119,22 +91,23 @@ object Main extends App {
     Coordinates(x, y)
   }
 
-
-  private def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Boolean = {
-    map.isWithinBounds(newCoordinates) && getShortestPath(map, activePlayerUnit, passivePlayerUnit, maxMovement).isDefined
+  def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Boolean = {
+    map.isWithinBounds(newCoordinates)
+      && getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayerUnit).isDefined
   }
 
 
-  def getShortestPath(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit, maxMovement: Int): Option[List[Coordinates]] = {
+  def getShortestPath(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Option[List[Coordinates]] = {
     val start = activePlayerUnit.coordinates
-    val end = passivePlayerUnit.coordinates
+    val end = newCoordinates
+    val maxMovement = activePlayerUnit.character.movement
 
     val moves = List((0, 1), (0, -1), (1, 0), (-1, 0)) //possible moves (up, down, left, right
 
-    val visited = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(false)//2D array to keep track of visited cells
-    val path = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(Coordinates(-1, -1))//2D array to store the parent of each cell in the shortest path
-    val queue = Queue[Coordinates]()//queue to perform Breadth-First Search (BFS)
-    val steps = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(0)//2D array to store the number of steps taken to reach each cell
+    val visited = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(false) //2D array to keep track of visited cells
+    val path = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(Coordinates(-1, -1)) //2D array to store the parent of each cell in the shortest path
+    val queue = Queue[Coordinates]() //queue to perform Breadth-First Search (BFS)
+    val steps = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(0) //2D array to store the number of steps taken to reach each cell
 
     queue.enqueue(start)
     visited(start.x)(start.y) = true
@@ -175,7 +148,7 @@ object Main extends App {
           steps(current.x)(current.y) + 1 <= maxMovement) { //Ensures that the total number of steps taken so far is within the maximum allowed movement
 
           println(s"Enqueuing cell: ($newX, $newY)")
-          queue.enqueue(Coordinates(newX, newY))//dds the new coordinates to the BFS queue for further exploration.
+          queue.enqueue(Coordinates(newX, newY)) //dds the new coordinates to the BFS queue for further exploration.
           visited(newX)(newY) = true //Marks the cell as visited
           path(newX)(newY) = current //Records the path from the current cell to the new cell.
           steps(newX)(newY) = steps(current.x)(current.y) + 1 //Updates the number of steps taken to reach the new cell
@@ -187,37 +160,34 @@ object Main extends App {
   }
 
 
-}
 
-
-
-    /**
-     * print board
-     *  We could print valid moves for our user
-     * ask for input
-     * check if input is valid
-     * if valid
-     *    update activePlayerUnit
-     *    print board
-     *    return updated activePlayerUnit
-     * if invalid
-     *    we want to retry ask for input
-     */
-//    map.printMap(unit1, unit2)
-    printBoard(map, unit1, unit2)
-
-    activePlayerUnit
-
-  }
+  //
+  //
+  //  /**
+  //   * print board
+  //   * We could print valid moves for our user
+  //   * ask for input
+  //   * check if input is valid
+  //   * if valid
+  //   * update activePlayerUnit
+  //   * print board
+  //   * return updated activePlayerUnit
+  //   * if invalid
+  //   * we want to retry ask for input
+  //   */
+  //  //    map.printMap(unit1, unit2)
+  //  printBoard(map, unit1, unit2)
+  //
+  //  activePlayerUnit
 
 
   def printBoard(
-                map: MapConfig,
-                activePlayerUnit: GameUnit,
-                passivePlayerUnit: GameUnit,
-                includeActiveMovementRange: Boolean = false,
-                includeActiveShootingRange: Boolean = false
-              ): Unit = {
+                  map: MapConfig,
+                  activePlayerUnit: GameUnit,
+                  passivePlayerUnit: GameUnit,
+                  includeActiveMovementRange: Boolean = false,
+                  includeActiveShootingRange: Boolean = false
+                ): Unit = {
     val currentMap = map.layout + (
       activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
       passivePlayerUnit.coordinates -> passivePlayerUnit.character.avatar
@@ -248,13 +218,37 @@ object Main extends App {
     }
 
     println("      " + map.HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
-
-
-    rangeAttackManager.checkRangedAttack(unit1.coordinates, unit2.coordinates)
-    // Call initiateCloseCombatAttack method
-    closeCombatManager.initiateCloseCombatAttack()
   }
 
 
+  def start(
+             unit1: GameUnit,
+             unit2: GameUnit,
+             map: MapConfig,
+             isPlayer1First: Boolean
+           ): Unit = {
+    printBoard(map, unit1, unit2)
+    val movedUnit = movement(map, unit1, unit2)
+    printBoard(map, movedUnit, unit2)
+    //map.layout
+
+    //    // Handle player movement
+    //    activePlayerUnit = movement(map, activePlayerUnit, passivePlayerUnit)
+    //
+    //    // Handle range attack
+    //    rangeAttack(map, activePlayerUnit, passivePlayerUnit)
+    //
+    //    // Handle close combat attack
+    //    closeCombatAttack(map, activePlayerUnit, passivePlayerUnit)
+
+
+    // Check for victory
+    victoryChecker.checkVictory(map).foreach { result =>
+      println(result)
+      return // End the game
+
+    }
+  }
+}
 
 
