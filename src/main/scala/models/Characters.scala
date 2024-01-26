@@ -9,7 +9,11 @@ object Characters {
     range = 10,
     weaponSkill = 95,
     movement = 10,
-    avatar = "S"
+    avatar = "S",
+    rangedAttackHitMessage = "Space Marine opened fire with his Bolter and eliminated the ",
+    rangedAttackMissMessage = "Space Marine Bolts missed the "
+    
+
   )
 
   val Ork = GameCharacter(
@@ -18,6 +22,8 @@ object Characters {
     range = 5,
     weaponSkill = 60,
     movement = 10,
-    avatar = "O"
+    avatar = "O",
+    rangedAttackHitMessage = "Ork unleashed his Big Shoota and blasted the ",
+    rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the "
   )
 }

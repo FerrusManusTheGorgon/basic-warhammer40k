@@ -1,6 +1,7 @@
 import game.{Coordinates, GameUnit}
-import jobs.CheckVictoryConditions
+import jobs.{CheckVictoryConditions, RangeAttackManager2}
 import models.{Characters, GameCharacter, MapConfig, Maps}
+
 import scala.collection.mutable.Queue
 import scala.io.StdIn
 
@@ -59,6 +60,20 @@ object Main extends App {
   val mapWeAreUsing = Maps.RockyDivide
   val isPlayer1First = true
 
+
+  val checkRangedAttack = new RangeAttackManager2
+
+
+
+
+
+//  // Check if a ranged attack is possible
+//  RangeAttackManager2.checkRangedAttack(unit1.coordinates, unit2.coordinates)
+//
+//  // Perform a ranged attack
+//  RangeAttackManager2.performRangedAttack(unit2.coordinates)
+
+
   val victoryChecker = new CheckVictoryConditions
   //rangeattackMamnager and attacker manager need rto look like victory checker
   start(unit1, unit2, mapWeAreUsing, isPlayer1First)
@@ -75,15 +90,16 @@ object Main extends App {
     val newCoordinates: Coordinates = parseCoordinates(input)
 
     if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
-      // If the move is valid, return the current GameUnit with updated coordinates
-      activePlayerUnit.copy(coordinates = newCoordinates)
 
+      // Return the current GameUnit with updated coordinates
+      activePlayerUnit.copy(coordinates = newCoordinates)
     } else {
       // If the move is not valid, ask the player to enter new coordinates
       println("Invalid coordinates. Please enter valid coordinates.")
       movement(map, activePlayerUnit, passivePlayerUnit)
     }
   }
+
 
   // Parse string input into Coordinates because "input: String = StdIn.readLine()" is a string
   def parseCoordinates(input: String): Coordinates = {
@@ -230,6 +246,9 @@ object Main extends App {
     printBoard(map, unit1, unit2)
     val movedUnit = movement(map, unit1, unit2)
     printBoard(map, movedUnit, unit2)
+    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
+    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
+    printBoard(map, movedUnit, shotUnit)
     //map.layout
 
     //    // Handle player movement

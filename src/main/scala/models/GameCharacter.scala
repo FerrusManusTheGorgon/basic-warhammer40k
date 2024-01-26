@@ -6,6 +6,8 @@ case class GameCharacter(
                       ballisticSkill: Int,
                       weaponSkill: Int,
                       movement: Int,
-                      avatar: String
+                      avatar: String,
+                      rangedAttackHitMessage: String,
+                      rangedAttackMissMessage: String
 
                     )
