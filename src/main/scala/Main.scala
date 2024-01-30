@@ -83,160 +83,6 @@ object Main extends App {
   //  val rangeAttackManager = ??? //new RangeAttackManager2(mapWeAreUsing, unit1, unit2)
 
 
-  @scala.annotation.tailrec
-  def movement(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): GameUnit = {
-    println("Enter coordinates (format: x y)")
-    val input: String = StdIn.readLine()
-    val newCoordinates: Coordinates = parseCoordinates(input)
-
-    if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
-
-      // Return the current GameUnit with updated coordinates
-      activePlayerUnit.copy(coordinates = newCoordinates)
-    } else {
-      // If the move is not valid, ask the player to enter new coordinates
-      println("Invalid coordinates. Please enter valid coordinates.")
-      movement(map, activePlayerUnit, passivePlayerUnit)
-    }
-  }
-
-
-  // Parse string input into Coordinates because "input: String = StdIn.readLine()" is a string
-  def parseCoordinates(input: String): Coordinates = {
-    val Array(x, y) = input.split("\\s+").map(_.toInt)
-    Coordinates(x, y)
-  }
-
-  def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Boolean = {
-    map.isWithinBounds(newCoordinates)
-      && getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayerUnit).isDefined
-  }
-
-
-  def getShortestPath(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Option[List[Coordinates]] = {
-    val start = activePlayerUnit.coordinates
-    val end = newCoordinates
-    val maxMovement = activePlayerUnit.character.movement
-
-    val moves = List((0, 1), (0, -1), (1, 0), (-1, 0)) //possible moves (up, down, left, right
-
-    val visited = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(false) //2D array to keep track of visited cells
-    val path = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(Coordinates(-1, -1)) //2D array to store the parent of each cell in the shortest path
-    val queue = Queue[Coordinates]() //queue to perform Breadth-First Search (BFS)
-    val steps = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(0) //2D array to store the number of steps taken to reach each cell
-
-    queue.enqueue(start)
-    visited(start.x)(start.y) = true
-
-    while (queue.nonEmpty) {
-      val current = queue.dequeue()
-
-      println(s"Exploring cell: $current")
-
-      if (current == end) {
-        val shortestPath = scala.collection.mutable.ListBuffer[Coordinates]()
-        var currentPos = end
-        var pathLength = 0
-
-        while (currentPos != start) {
-          shortestPath.prepend(currentPos)
-          pathLength += 1
-          currentPos = path(currentPos.x)(currentPos.y)
-        }
-
-        shortestPath.prepend(start) //add an element at the beginning of the list
-        println(s"Path length: $pathLength, Max movement: $maxMovement")
-
-        if (pathLength <= maxMovement) {
-          println("Shortest Path Coordinates:")
-          shortestPath.foreach(println)
-          return Some(shortestPath.toList) //Some is to indicate that a valid result (the shortest path)
-        }
-      }
-
-      for ((dx, dy) <- moves) { //loop iterating over each pair (dx, dy) in the moves list.
-        val newX = current.x + dx // moves represents possible moves in terms of changes in x and y coordinates (e.g., moving up, down, left, or right)
-        val newY = current.y + dy
-
-        if (map.isWithinBounds(Coordinates(newX, newY)) && //checks whether the new coordinates are within the bounds of the map
-          !visited(newX)(newY) && //Checks if the cell with the new coordinates has not been visited before
-          map.layout.getOrElse(Coordinates(newX, newY), "") != map.BLOCKED_SQUARE && //Checks if the cell with the new coordinates is not blocked on the map
-          steps(current.x)(current.y) + 1 <= maxMovement) { //Ensures that the total number of steps taken so far is within the maximum allowed movement
-
-          println(s"Enqueuing cell: ($newX, $newY)")
-          queue.enqueue(Coordinates(newX, newY)) //dds the new coordinates to the BFS queue for further exploration.
-          visited(newX)(newY) = true //Marks the cell as visited
-          path(newX)(newY) = current //Records the path from the current cell to the new cell.
-          steps(newX)(newY) = steps(current.x)(current.y) + 1 //Updates the number of steps taken to reach the new cell
-        }
-      }
-    }
-
-    None
-  }
-
-
-
-  //
-  //
-  //  /**
-  //   * print board
-  //   * We could print valid moves for our user
-  //   * ask for input
-  //   * check if input is valid
-  //   * if valid
-  //   * update activePlayerUnit
-  //   * print board
-  //   * return updated activePlayerUnit
-  //   * if invalid
-  //   * we want to retry ask for input
-  //   */
-  //  //    map.printMap(unit1, unit2)
-  //  printBoard(map, unit1, unit2)
-  //
-  //  activePlayerUnit
-
-
-  def printBoard(
-                  map: MapConfig,
-                  activePlayerUnit: GameUnit,
-                  passivePlayerUnit: GameUnit,
-                  includeActiveMovementRange: Boolean = false,
-                  includeActiveShootingRange: Boolean = false
-                ): Unit = {
-    val currentMap = map.layout + (
-      activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
-      passivePlayerUnit.coordinates -> passivePlayerUnit.character.avatar
-    )
-
-    val movementRange = if (includeActiveMovementRange) {
-      //call method to check range here
-      //input unit (need current location, and movement), and currentMap: returns Map[Coordinates, String]
-      Map.empty[Coordinates, String]
-    } else Map.empty[Coordinates, String]
-
-    val shootingRange = if (includeActiveMovementRange) {
-      Map.empty[Coordinates, String]
-    } else Map.empty[Coordinates, String]
-
-    val boardState = currentMap
-      ++ movementRange
-      ++ shootingRange
-
-    println(map.HORIZONTAL_BORDER)
-
-    map.VERTICAL_RANGE.reverse.foreach { y =>
-      val row = map.HORIZONTAL_RANGE.map { x =>
-        s"|  ${boardState(Coordinates(x, y))}  "
-      }.reduce((a, b) => a + b)
-      println(f"$y%4d  " + row + "|")
-      println(map.HORIZONTAL_BORDER)
-    }
-
-    println("      " + map.HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
-  }
-
-
   def start(
              unit1: GameUnit,
              unit2: GameUnit,
@@ -268,6 +114,212 @@ object Main extends App {
 
     }
   }
+
+  @scala.annotation.tailrec
+  def movement(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): GameUnit = {
+    println("Enter coordinates (format: x y)")
+    val input: String = StdIn.readLine()
+    val newCoordinates: Coordinates = parseCoordinates(input)
+
+    if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
+
+      // Return the current GameUnit with updated coordinates
+      activePlayerUnit.copy(coordinates = newCoordinates)
+    } else {
+      // If the move is not valid, ask the player to enter new coordinates
+      println("Invalid coordinates. Please enter valid coordinates.")
+      movement(map, activePlayerUnit, passivePlayerUnit)
+    }
+  }
+
+
+  // Parse string input into Coordinates because "input: String = StdIn.readLine()" is a string
+  def parseCoordinates(input: String): Coordinates = {
+    val Array(x, y) = input.split("\\s+").map(_.toInt)
+    Coordinates(x, y)
+  }
+
+  def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Boolean = {
+    map.isWithinBounds(newCoordinates)
+      && getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayerUnit).isDefined
+  }
+
+
+  def getShortestPath(map: MapConfig, newCoordinates: Coordinates, activePlayer: GameUnit, passivePlayer: GameUnit): Option[List[Coordinates]] = {
+    val possibleMoves = countSteps(map, activePlayer.coordinates, activePlayer.character.movement, passivePlayer.coordinates)
+    printBoard(map, activePlayer, passivePlayer, possibleMoves.values.flatten.map(m => (m -> ".")).toMap)
+    possibleMoves
+      .find(_._2.contains(newCoordinates)).map(_._2)
+  }
+
+  def countSteps(map: MapConfig, start: Coordinates, movement: Int, enemyLocation: Coordinates): Map[Int, List[Coordinates]] = {
+    val steps = 1 to movement
+
+    steps.foldLeft(Map(0 -> List(start))) { (previousSteps, step) =>
+      println(s"previous Step $previousSteps")
+      println(s" Step $step")
+
+      val lastStep = step - 1
+      val visitedSteps = previousSteps.values.flatten.toSet
+      val nextSteps = previousSteps(lastStep).flatMap { pStep =>
+        println(pStep.adjacent)
+        pStep.adjacent
+          .filterNot(map.blocker.contains(_))
+          .filter(map.isWithinBounds)
+          .filterNot(c => c == enemyLocation)
+          .filterNot(visitedSteps.contains)
+      }.toSet
+//      println(nextSteps)
+      previousSteps + (step -> nextSteps.toList)
+    }
+
+  }
+
+//  def countSteps2(map: MapConfig, start: Coordinates, movement: Int, enemyLocation: Coordinates): Map[Int, List[Coordinates]] = {
+//    val steps = 1 to movement
+//
+//    steps.foldLeft(Map(0 -> List(start))) { (previousSteps, step) =>
+//      val lastStep = step - 1
+//      val visitedSteps = previousSteps.values.flatten.toSet
+//      val nextSteps = previousSteps(lastStep).flatMap { pStep =>
+//        val children = pStep.adjacent
+//          .filter(map.blocker.contains(_))
+//          .filter(map.isWithinBounds)
+//          .filter(c => c == enemyLocation)
+//          .filter(visitedSteps.contains)
+//        Map(pStep -> children)
+//      }.toSet
+//      previousSteps + (step -> nextSteps.toList)
+//    }
+//
+//  }
+
+//  def getShortestPath2(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Option[List[Coordinates]] = {
+//    val start = activePlayerUnit.coordinates
+//    val end = newCoordinates
+//    val maxMovement = activePlayerUnit.character.movement
+//
+//    val moves = List((0, 1), (0, -1), (1, 0), (-1, 0)) //possible moves (up, down, left, right
+//
+//    val visited = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(false) //2D array to keep track of visited cells
+//    val path = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(Coordinates(-1, -1)) //2D array to store the parent of each cell in the shortest path
+//    val queue = Queue[Coordinates]() //queue to perform Breadth-First Search (BFS)
+//    val steps = Array.fill(map.horizontalLength + 2, map.verticalLength + 2)(0) //2D array to store the number of steps taken to reach each cell
+//
+//    queue.enqueue(start)
+//    visited(start.x)(start.y) = true
+//
+//    while (queue.nonEmpty) {
+//      val current = queue.dequeue()
+//
+//      println(s"Exploring cell: $current")
+//
+//      if (current == end) {
+//        val shortestPath = scala.collection.mutable.ListBuffer[Coordinates]()
+//        var currentPos = end
+//        var pathLength = 0
+//
+//        while (currentPos != start) {
+//          shortestPath.prepend(currentPos)
+//          pathLength += 1
+//          currentPos = path(currentPos.x)(currentPos.y)
+//        }
+//
+//        shortestPath.prepend(start) //add an element at the beginning of the list
+//        println(s"Path length: $pathLength, Max movement: $maxMovement")
+//
+//        if (pathLength <= maxMovement) {
+//          println("Shortest Path Coordinates:")
+//          shortestPath.foreach(println)
+//          return Some(shortestPath.toList) //Some is to indicate that a valid result (the shortest path)
+//        }
+//      }
+//
+//      for ((dx, dy) <- moves) { //loop iterating over each pair (dx, dy) in the moves list.
+//        val newX = current.x + dx // moves represents possible moves in terms of changes in x and y coordinates (e.g., moving up, down, left, or right)
+//        val newY = current.y + dy
+//
+//        if (map.isWithinBounds(Coordinates(newX, newY)) && //checks whether the new coordinates are within the bounds of the map
+//          !visited(newX)(newY) && //Checks if the cell with the new coordinates has not been visited before
+//          map.layout.getOrElse(Coordinates(newX, newY), "") != map.BLOCKED_SQUARE && //Checks if the cell with the new coordinates is not blocked on the map
+//          steps(current.x)(current.y) + 1 <= maxMovement) { //Ensures that the total number of steps taken so far is within the maximum allowed movement
+//
+//          println(s"Enqueuing cell: ($newX, $newY)")
+//          queue.enqueue(Coordinates(newX, newY)) //dds the new coordinates to the BFS queue for further exploration.
+//          visited(newX)(newY) = true //Marks the cell as visited
+//          path(newX)(newY) = current //Records the path from the current cell to the new cell.
+//          steps(newX)(newY) = steps(current.x)(current.y) + 1 //Updates the number of steps taken to reach the new cell
+//        }
+//      }
+//    }
+//
+//    None
+//  }
+
+
+
+  //
+  //
+  //  /**
+  //   * print board
+  //   * We could print valid moves for our user
+  //   * ask for input
+  //   * check if input is valid
+  //   * if valid
+  //   * update activePlayerUnit
+  //   * print board
+  //   * return updated activePlayerUnit
+  //   * if invalid
+  //   * we want to retry ask for input
+  //   */
+  //  //    map.printMap(unit1, unit2)
+  //  printBoard(map, unit1, unit2)
+  //
+  //  activePlayerUnit
+
+
+  def printBoard(
+                  map: MapConfig,
+                  activePlayerUnit: GameUnit,
+                  passivePlayerUnit: GameUnit,
+                  movementRange: Map[Coordinates,String] = Map.empty[Coordinates, String],
+//                  includeActiveMovementRange: Boolean = false,
+                  includeActiveShootingRange: Boolean = false
+                ): Unit = {
+    val currentMap = map.layout + (
+      activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
+      passivePlayerUnit.coordinates -> passivePlayerUnit.character.avatar
+    )
+
+//    val movementRange = if (includeActiveMovementRange) {
+//      //call method to check range here
+//      //input unit (need current location, and movement), and currentMap: returns Map[Coordinates, String]
+//      Map.empty[Coordinates, String]
+//    } else Map.empty[Coordinates, String]
+
+    val shootingRange = if (includeActiveShootingRange) {
+      Map.empty[Coordinates, String]
+    } else Map.empty[Coordinates, String]
+
+    val boardState = currentMap
+      ++ movementRange
+      ++ shootingRange
+
+    println(map.HORIZONTAL_BORDER)
+
+    map.VERTICAL_RANGE.reverse.foreach { y =>
+      val row = map.HORIZONTAL_RANGE.map { x =>
+        s"|  ${boardState(Coordinates(x, y))}  "
+      }.reduce((a, b) => a + b)
+      println(f"$y%4d  " + row + "|")
+      println(map.HORIZONTAL_BORDER)
+    }
+
+    println("      " + map.HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
+  }
+
+
+
 }
 
 
