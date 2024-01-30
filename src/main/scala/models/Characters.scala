@@ -21,7 +21,7 @@ object Characters {
     ballisticSkill = 20,
     range = 5,
     weaponSkill = 60,
-    movement = 10,
+    movement = 30,
     avatar = "O",
     rangedAttackHitMessage = "Ork unleashed his Big Shoota and blasted the ",
     rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the "
