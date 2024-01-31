@@ -62,16 +62,16 @@ object Main extends App {
 
 
   val checkRangedAttack = new RangeAttackManager2
+  val rangeAttackManager = new RangeAttackManager2
 
 
 
 
-
-//  // Check if a ranged attack is possible
-//  RangeAttackManager2.checkRangedAttack(unit1.coordinates, unit2.coordinates)
-//
-//  // Perform a ranged attack
-//  RangeAttackManager2.performRangedAttack(unit2.coordinates)
+  //  // Check if a ranged attack is possible
+  //  RangeAttackManager2.checkRangedAttack(unit1.coordinates, unit2.coordinates)
+  //
+  //  // Perform a ranged attack
+  //  RangeAttackManager2.performRangedAttack(unit2.coordinates)
 
 
   val victoryChecker = new CheckVictoryConditions
@@ -238,16 +238,23 @@ object Main extends App {
 
 
   def start(
-             unit1: GameUnit,
-             unit2: GameUnit,
-             map: MapConfig,
-             isPlayer1First: Boolean
-           ): Unit = {
+    unit1: GameUnit,
+    unit2: GameUnit,
+    map: MapConfig,
+    isPlayer1First: Boolean
+  ): Unit
+  =
+  {
     printBoard(map, unit1, unit2)
     val movedUnit = movement(map, unit1, unit2)
     printBoard(map, movedUnit, unit2)
     val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
-    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
+
+    // Call the performRangedAttackIfInRange method
+    rangeAttackManager.performRangedAttackIfInRange(map, movedUnit, unit2)
+
+    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2, None)
+
     printBoard(map, movedUnit, shotUnit)
     //map.layout
 

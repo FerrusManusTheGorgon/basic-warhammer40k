@@ -22,7 +22,9 @@ case object Maps {
       Coordinates(10, 9),
       Coordinates(10, 10)
     )
-//    spaceMarinePos = List("2,2"),
-//    orkPos = List("11,11")
   )
+  val spaceMarinePos: Coordinates = Coordinates(3, 4) // Define position for Space Marine within map bounds
+  val orkPos: Coordinates = Coordinates(6, 8) // Define position for Ork within map bounds
+
+
 }

@@ -30,6 +30,8 @@ case class MapConfig(
       accumulator + (coords -> BLOCKED_SQUARE)
     }
   }
+  
+  
 
   def isWithinBounds(coordinates: Coordinates): Boolean = {
     coordinates.x >= 1 && coordinates.x <= horizontalLength &&
