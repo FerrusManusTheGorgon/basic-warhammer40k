@@ -204,9 +204,16 @@ object Main extends App {
                   includeActiveMovementRange: Boolean = false,
                   includeActiveShootingRange: Boolean = false
                 ): Unit = {
+
+    val currentPassivePlayerStatus = if (passivePlayerUnit.state == DEAD_STATE) {
+      "$"
+    } else {
+      passivePlayerUnit.character.avatar
+    }
+
     val currentMap = map.layout + (
       activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
-      passivePlayerUnit.coordinates -> passivePlayerUnit.character.avatar
+      passivePlayerUnit.coordinates -> currentPassivePlayerStatus
     )
 
     val movementRange = if (includeActiveMovementRange) {
@@ -246,10 +253,16 @@ object Main extends App {
     printBoard(map, unit1, unit2)
     val movedUnit = movement(map, unit1, unit2)
     printBoard(map, movedUnit, unit2)
-    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
-    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
-    printBoard(map, movedUnit, shotUnit)
+//    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
+//    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
+//    printBoard(map, movedUnit, shotUnit)
     //map.layout
+
+    val potentialTarget = checkRangedAttack.performRangedAttackIfInRange(map, movedUnit, unit2)
+
+//    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2, None)
+    printBoard(map, movedUnit, potentialTarget)
+
 
     //    // Handle player movement
     //    activePlayerUnit = movement(map, activePlayerUnit, passivePlayerUnit)

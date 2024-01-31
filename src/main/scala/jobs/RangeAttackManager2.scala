@@ -2,6 +2,8 @@ package jobs
 
 import game.{Coordinates, GameUnit}
 import models.{Characters, GameCharacter, MapConfig, Maps}
+
+import scala.io.StdIn
 import scala.util.Random
 
 
@@ -18,22 +20,77 @@ class RangeAttackManager2 {
     println(s"Opponent's character $opponent is in range at coordinates $coordinates")
   }
 
+//  // Method to perform ranged attack
+//  def performRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
+//    val defender = passivePlayer.character.avatar
+//    val attackerBS = activePlayer.character.ballisticSkill
+//
+//    val randomChance = Random.nextInt(100) + 1
+//    println(s"$randomChance vs $attackerBS")
+//
+//    if (randomChance <= attackerBS) {
+//      println(activePlayer.character.rangedAttackHitMessage + s"$defender at coordinates ${passivePlayer.coordinates}!")
+//      // Return a new GameUnit with the updated map configuration and dead state
+//      passivePlayer.copy(state = "dead")
+//    } else {
+//      println(activePlayer.character.rangedAttackMissMessage + s"$defender at coordinates ${passivePlayer.coordinates}!")
+//      passivePlayer // Return the original GameUnit
+//    }
+//
+//  }
+
   // Method to perform ranged attack
-  def performRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
-    val defender = passivePlayer.character.avatar
-    val attackerBS = activePlayer.character.ballisticSkill
+  @scala.annotation.tailrec
+  final def performRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit, targetCoordinates: Coordinates): GameUnit = {
+//    if (attackPerformed) return passivePlayer
 
-    val randomChance = Random.nextInt(100) + 1
-    println(s"$randomChance vs $attackerBS")
+    val targetString: String = s"${targetCoordinates.x} ${targetCoordinates.y}"
+    println(s"Would you like to open fire? Enter $targetCoordinates or 'Hold Fire'")
+    val input: String = StdIn.readLine()
 
-    if (randomChance <= attackerBS) {
-      println(activePlayer.character.rangedAttackHitMessage + s"$defender at coordinates ${passivePlayer.coordinates}!")
-      // Return a new GameUnit with the updated map configuration and dead state
-      passivePlayer.copy(state = "dead")
+    if (input.toLowerCase.trim == targetString) {
+      val defender = passivePlayer.character.avatar
+      val attackerBS = activePlayer.character.ballisticSkill
+
+      val randomChance = Random.nextInt(100) + 1
+      println(s"$randomChance vs $attackerBS")
+
+      if (randomChance <= attackerBS) {
+        println(activePlayer.character.rangedAttackHitMessage + s"$defender at coordinates $targetCoordinates!")
+        // Return a new GameUnit with the updated map configuration and dead state
+        passivePlayer.copy(state = "dead")
+      } else {
+        println(activePlayer.character.rangedAttackMissMessage + s"$defender at coordinates $targetCoordinates!")
+        passivePlayer // Return the original GameUnit
+      }
+    } else if (input.toLowerCase.trim == "hold fire") {
+      passivePlayer
     } else {
-      println(activePlayer.character.rangedAttackMissMessage + s"$defender at coordinates ${passivePlayer.coordinates}!")
-      passivePlayer // Return the original GameUnit
+      println(s"Invalid input. Please enter $targetCoordinates or 'Hold Fire'.")
+      performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
     }
+//    input.toLowerCase.trim match {
+//      case targetString =>
+//        val defender = passivePlayer.character.avatar
+//        val attackerBS = activePlayer.character.ballisticSkill
+//
+//        val randomChance = Random.nextInt(100) + 1
+//        println(s"$randomChance vs $attackerBS")
+//
+//        if (randomChance <= attackerBS) {
+//          println(activePlayer.character.rangedAttackHitMessage + s"$defender at coordinates $targetCoordinates!")
+//          // Return a new GameUnit with the updated map configuration and dead state
+//          passivePlayer.copy(state = "dead")
+//        } else {
+//          println(activePlayer.character.rangedAttackMissMessage + s"$defender at coordinates $targetCoordinates!")
+//          passivePlayer // Return the original GameUnit
+//        }
+//      case "hold fire" =>
+//        passivePlayer
+//      case _ =>
+//        println(s"Invalid input. Please enter $targetCoordinates or 'Hold Fire'.")
+//        performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
+//    }
 
   }
 
@@ -121,17 +178,14 @@ class RangeAttackManager2 {
       }
     }
 
-
-
-
     // Print the filtered list of coordinates and their contents
     println("Filtered List of Coordinates and Contents:")
     coordinatesAndContents.foreach { case (coord, content) =>
       println(s"Coordinate: (${coord.x}, ${coord.y}), Content: $content")
     }
 
-    coordinatesAndContents.find { case (_, content) =>
-      content == passivePlayer.character.avatar
+    coordinatesAndContents.find { case (coord, _) =>
+      coord == passivePlayer.coordinates
     }.map(_._1)
 
 
@@ -144,15 +198,17 @@ class RangeAttackManager2 {
     //check blocker right
     // check blocker left
 
-
-
-
-
-
-
-
   }
 
+  def performRangedAttackIfInRange(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
+    checkRangedAttack(mapConfig, activePlayer, passivePlayer) match {
+      case Some(targetCoordinates) =>
+        performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
+      case None =>
+        println(s"Unable to open fire on the ${passivePlayer.character.avatar}")
+        passivePlayer
+    }
+  }
 
 
 
