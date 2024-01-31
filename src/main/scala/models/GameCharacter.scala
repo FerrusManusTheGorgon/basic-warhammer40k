@@ -8,6 +8,8 @@ case class GameCharacter(
                       movement: Int,
                       avatar: String,
                       rangedAttackHitMessage: String,
-                      rangedAttackMissMessage: String
+                      rangedAttackMissMessage: String,
+                      closeCombatHitMessage: String,
+                      closeCombatMissMessage: String  
 
                     )
