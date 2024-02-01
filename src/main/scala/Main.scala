@@ -1,5 +1,5 @@
 import game.{Coordinates, GameUnit}
-import jobs.{CheckVictoryConditions, RangeAttackManager2}
+import jobs.{CheckVictoryConditions, RangeAttackManager2, CloseCombatManager}
 import models.{Characters, GameCharacter, MapConfig, Maps}
 
 import scala.collection.mutable.Queue
@@ -62,7 +62,7 @@ object Main extends App {
 
 
   val checkRangedAttack = new RangeAttackManager2
-
+  val checkCloseCombatAttack = new CloseCombatManager
 
 
 
@@ -85,18 +85,25 @@ object Main extends App {
 
   @scala.annotation.tailrec
   def movement(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): GameUnit = {
-    println("Enter coordinates (format: x y)")
+    println(s"Move ${activePlayerUnit.character.avatar} or Hold Your Ground. Enter coordinates (format: x y) or Hold Your Ground")
     val input: String = StdIn.readLine()
-    val newCoordinates: Coordinates = parseCoordinates(input)
 
-    if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
-
-      // Return the current GameUnit with updated coordinates
-      activePlayerUnit.copy(coordinates = newCoordinates)
+    // Check if the input is "Hold Your Ground"
+    if (input.toLowerCase == "hold your ground") {
+      // If the player wants to hold their ground, return the current active player unit without any changes
+      activePlayerUnit
     } else {
-      // If the move is not valid, ask the player to enter new coordinates
-      println("Invalid coordinates. Please enter valid coordinates.")
-      movement(map, activePlayerUnit, passivePlayerUnit)
+      // If the input is not "Hold Your Ground", parse the coordinates and proceed as usual
+      val newCoordinates: Coordinates = parseCoordinates(input)
+
+      if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
+        // Return the current GameUnit with updated coordinates
+        activePlayerUnit.copy(coordinates = newCoordinates)
+      } else {
+        // If the move is not valid, ask the player to enter new coordinates
+        println("Invalid coordinates. Please enter valid coordinates.")
+        movement(map, activePlayerUnit, passivePlayerUnit)
+      }
     }
   }
 
@@ -204,9 +211,14 @@ object Main extends App {
                   includeActiveMovementRange: Boolean = false,
                   includeActiveShootingRange: Boolean = false
                 ): Unit = {
+    val currentPassivePlayerStatus = if (passivePlayerUnit.state == DEAD_STATE) {
+      "$"
+    } else {
+      passivePlayerUnit.character.avatar
+    }
     val currentMap = map.layout + (
       activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
-      passivePlayerUnit.coordinates -> passivePlayerUnit.character.avatar
+      passivePlayerUnit.coordinates -> currentPassivePlayerStatus
     )
 
     val movementRange = if (includeActiveMovementRange) {
@@ -246,9 +258,28 @@ object Main extends App {
     printBoard(map, unit1, unit2)
     val movedUnit = movement(map, unit1, unit2)
     printBoard(map, movedUnit, unit2)
-    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
-    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
-    printBoard(map, movedUnit, shotUnit)
+//    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
+//    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
+//    printBoard(map, movedUnit, shotUnit)
+
+    val potentialTarget = checkRangedAttack.performRangedAttackIfInRange(map, movedUnit, unit2)
+
+    //    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2, None)
+    printBoard(map, movedUnit, potentialTarget)
+//    val targetedUnit = checkRangedAttack.performRangedAttackIfInRange(map, movedUnit, unit2)
+//    printBoard(map, movedUnit, targetedUnit)
+    val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnit, potentialTarget)
+    printBoard(map, movedUnit, potentialMeleeTarget)
+
+    val (newActivePlayerUnit, newPassivePlayerUnit) =
+      if (isPlayer1First) (potentialMeleeTarget, movedUnit)
+      else (movedUnit, potentialMeleeTarget)
+
+
+
+    // Check for victory
+
+    //    val possibleVictoryConditions = checkVictoryConditions.victoryChecker(map, movedUnit, unit2, unit2.coordinates)
     //map.layout
 
     //    // Handle player movement
@@ -262,12 +293,18 @@ object Main extends App {
 
 
     // Check for victory
-    victoryChecker.checkVictory(map).foreach { result =>
-      println(result)
-      return // End the game
-
+    // Check for victory
+    victoryChecker.checkVictory(newActivePlayerUnit, newPassivePlayerUnit) match {
+      case Some(result) => println(result)
+      case None =>
+        val newIsPlayer1First = !isPlayer1First // Switch the player turn
+        // Recursive call to start function with players switched
+        start(newActivePlayerUnit, newPassivePlayerUnit, map, newIsPlayer1First)
     }
+
   }
-}
+
+  }
+
 
 

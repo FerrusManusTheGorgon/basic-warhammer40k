@@ -11,8 +11,9 @@ object Characters {
     movement = 10,
     avatar = "S",
     rangedAttackHitMessage = "Space Marine opened fire with his Bolter and eliminated the ",
-    rangedAttackMissMessage = "Space Marine Bolts missed the "
-
+    rangedAttackMissMessage = "Space Marine Bolts missed the ",
+    closeCombatHitMessage = "Space eviscerated the xeno scum with his chain sword ",
+    closeCombatMissMessage = "The xeno evaded the sweep of the chain sword"
 
   )
 
@@ -24,6 +25,8 @@ object Characters {
     movement = 30,
     avatar = "O",
     rangedAttackHitMessage = "Ork unleashed his Big Shoota and blasted the ",
-    rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the "
+    rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the ",
+    closeCombatHitMessage = "Ork smashed the Space Marine  with his choppa, Waaaaaggh!!! ",
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the choppa"
   )
 }
