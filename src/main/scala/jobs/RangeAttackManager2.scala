@@ -71,124 +71,145 @@ class RangeAttackManager2 {
       performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
     }
   }
-    // Method to check ranged attack
-    //  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): Unit = {
-    //    println("Checking ranged attack...")
-    //    val row = activePlayer.coordinates.x
-    //    val col = activePlayer.coordinates.y
-    //    val range = activePlayer.character.range
-    //    val opponent = passivePlayer.character.avatar
+  // Method to check ranged attack
+  //  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): Unit = {
+  //    println("Checking ranged attack...")
+  //    val row = activePlayer.coordinates.x
+  //    val col = activePlayer.coordinates.y
+  //    val range = activePlayer.character.range
+  //    val opponent = passivePlayer.character.avatar
 
-    // Method to check ranged attack
-    def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): Option[Coordinates] = {
-      println("Checking ranged attack...")
-      val effectiveRange = math.min(activePlayer.character.range, math.max(mapConfig.horizontalLength, mapConfig.verticalLength))
-      val opponent = passivePlayer.character.avatar
-      val row = activePlayer.coordinates.x
-      val col = activePlayer.coordinates.y
+  // Method to check ranged attack
+  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): Option[Coordinates] = {
+    println("Checking ranged attack...")
+    val effectiveRange = math.min(activePlayer.character.range, math.max(mapConfig.horizontalLength, mapConfig.verticalLength))
+    val opponent = passivePlayer.character.avatar
+    val row = activePlayer.coordinates.x
+    val col = activePlayer.coordinates.y
 
-      // Create a list to store coordinates and their contents
-      var coordinatesAndContents: List[(Coordinates, String)] = List.empty
+    // Create a list to store coordinates and their contents
+    var coordinatesAndContents: List[(Coordinates, String)] = List.empty
 
-      // Check vertically above within effective range
-      for (dx <- 2 to effectiveRange) {
-        val rowAbove = row + dx
-        if (rowAbove < mapConfig.verticalLength + 1) {
-          val coord = Coordinates(rowAbove, col)
-          val content = mapConfig.layout.getOrElse(coord, "")
-          coordinatesAndContents ::= (coord, content)
-        }
+    // Check vertically above within effective range
+    for (dx <- 1 to effectiveRange) {
+      val rowAbove = row + dx
+      if (rowAbove < mapConfig.verticalLength + 1) {
+        val coord = Coordinates(rowAbove, col)
+        val content = mapConfig.layout.getOrElse(coord, "")
+        coordinatesAndContents ::= (coord, content)
       }
+    }
 
-      // Check vertically below within effective range
-      for (dx <- 2 to effectiveRange) {
-        val rowBelow = row - dx
-        if (rowBelow >= 0) {
-          val coord = Coordinates(rowBelow, col)
-          val content = mapConfig.layout.getOrElse(coord, "")
-          coordinatesAndContents ::= (coord, content)
-        }
+    // Check vertically below within effective range
+    for (dx <- 1 to effectiveRange) {
+      val rowBelow = row - dx
+      if (rowBelow >= 0) {
+        val coord = Coordinates(rowBelow, col)
+        val content = mapConfig.layout.getOrElse(coord, "")
+        coordinatesAndContents ::= (coord, content)
       }
+    }
 
-      // Check horizontally left within effective range
-      for (dy <- 2 to effectiveRange) {
-        val colLeft = col - dy
-        if (colLeft >= 0) {
-          val coord = Coordinates(row, colLeft)
-          val content = mapConfig.layout.getOrElse(coord, "")
-          coordinatesAndContents ::= (coord, content)
-        }
+    // Check horizontally left within effective range
+    for (dy <- 1 to effectiveRange) {
+      val colLeft = col - dy
+      if (colLeft >= 0) {
+        val coord = Coordinates(row, colLeft)
+        val content = mapConfig.layout.getOrElse(coord, "")
+        coordinatesAndContents ::= (coord, content)
       }
+    }
 
-      // Check horizontally right within effective range
-      for (dy <- 2 to effectiveRange) {
-        val colRight = col + dy
-        if (colRight < mapConfig.horizontalLength + 1) {
-          val coord = Coordinates(row, colRight)
-          val content = mapConfig.layout.getOrElse(coord, "")
-          coordinatesAndContents ::= (coord, content) // current cell and its content to the beginning of the list
-        }
+    // Check horizontally right within effective range
+    for (dy <- 1 to effectiveRange) {
+      val colRight = col + dy
+      if (colRight < mapConfig.horizontalLength + 1) {
+        val coord = Coordinates(row, colRight)
+        val content = mapConfig.layout.getOrElse(coord, "")
+        coordinatesAndContents ::= (coord, content) // current cell and its content to the beginning of the list
       }
+    }
 
-      // Find the coordinate of the blocked cell, if any
-      //    val blockedCoordinate = coordinatesAndContents.find { case (_, content) =>
-      //      content == "X"
-      //    }.map(_._1) // Extracting only the coordinate from the found tuple
-      val blockerCoordinates = coordinatesAndContents.filter { case (_, content) =>
-        content == "X"
-      }.map(_._1)
-      //val blockedCoordinates = mapConfig.blockers
-      // Filter out coordinates and contents based on the position of the blocked cell
-      blockerCoordinates.foreach { blockedCoordinate =>
-        val (bx, by) = (blockedCoordinate.x, blockedCoordinate.y)
-        coordinatesAndContents = coordinatesAndContents.filter { case (c, _) =>
-          val (x, y) = (c.x, c.y)
-          if (x == bx && y == by) false // Exclude the blocked cell itself
-          else if (x == row && y == col) true // Keep the current cell
-          else if (x == row && y > col && by > col) false // Exclude cells to the right of the blocked cell
-          else if (x == row && y < col && by < col) false // Exclude cells to the left of the blocked cell
-          else if (y == col && x > row && bx > row) false // Exclude cells above the blocked cell
-          else if (y == col && x < row && bx < row) false // Exclude cells below the blocked cell
-          else true // Keep cells in other directions
+    // Find the coordinate of the blocked cell, if any
+    //    val blockedCoordinate = coordinatesAndContents.find { case (_, content) =>
+    //      content == "X"
+    //    }.map(_._1) // Extracting only the coordinate from the found tuple
+    val blockerCoordinates = coordinatesAndContents.filter { case (_, content) =>
+      content == "X"
+    }.map(_._1)
+    //val blockedCoordinates = mapConfig.blockers
+    // Filter out coordinates and contents based on the position of the blocked cell
+    blockerCoordinates.foreach { blockedCoordinate =>
+      val (bx, by) = (blockedCoordinate.x, blockedCoordinate.y)
+      coordinatesAndContents = coordinatesAndContents.filter { case (c, _) =>
+        val (x, y) = (c.x, c.y)
+        if (x == bx && y == by) false // Exclude the blocked cell itself
+        else if (x == row && y == col) true // Keep the current cell
+        else if (x == row && y > col && by > col) false // Exclude cells to the right of the blocked cell
+        else if (x == row && y < col && by < col) false // Exclude cells to the left of the blocked cell
+        else if (y == col && x > row && bx > row) false // Exclude cells above the blocked cell
+        else if (y == col && x < row && bx < row) false // Exclude cells below the blocked cell
 
-        }
+
+        else true // Keep cells in other directions
+
       }
-
-
-
-
-      // Print the filtered list of coordinates and their contents
-      println("Filtered List of Coordinates and Contents:")
-      coordinatesAndContents.foreach { case (coord, content) =>
-        println(s"Coordinate: (${coord.x}, ${coord.y}), Content: $content")
-      }
-      coordinatesAndContents.find { case (coord, _) =>
-        coord == passivePlayer.coordinates
-      }.map(_._1)
-
-
-      // get the x coordinates
-      // get the y coordinates
-      // filter out things that are out of bounds
-      // filter out things not in range
-      //check blockers up
-      //checker blocker down
-      //check blocker right
-      // check blocker left
+//      // Filter out cells that are immediately adjacent to the active player's cell
+//      coordinatesAndContents = coordinatesAndContents.filter { case (c, _) =>
+//        val (x, y) = (c.x, c.y)
+//        if (x == activePlayer.coordinates.x && y == activePlayer.coordinates.y + 1) false // Exclude cell to the right
+//        else if (x == activePlayer.coordinates.x && y == activePlayer.coordinates.y - 1) false // Exclude cell to the left
+//        else if (y == activePlayer.coordinates.y && x == activePlayer.coordinates.x + 1) false // Exclude cell below
+//        else if (y == activePlayer.coordinates.y && x == activePlayer.coordinates.x - 1) false // Exclude cell above
+//        else true
+//      }
 
 
     }
 
-    // Method to perform ranged attack only if the passive player is in range
-    def performRangedAttackIfInRange(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
-      checkRangedAttack(mapConfig, activePlayer, passivePlayer) match {
-        case Some(targetCoordinates) =>
-          performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
-        case None =>
-          println(s"Unable to open fire on the ${passivePlayer.character.avatar}")
-          passivePlayer
-      }
+
+    // Filter out cells that are immediately adjacent to the active player's cell
+    coordinatesAndContents = coordinatesAndContents.filter { case (c, _) =>
+      val (x, y) = (c.x, c.y)
+      if (x == activePlayer.coordinates.x && y == activePlayer.coordinates.y + 1) false // Exclude cell to the right
+      else if (x == activePlayer.coordinates.x && y == activePlayer.coordinates.y - 1) false // Exclude cell to the left
+      else if (y == activePlayer.coordinates.y && x == activePlayer.coordinates.x + 1) false // Exclude cell below
+      else if (y == activePlayer.coordinates.y && x == activePlayer.coordinates.x - 1) false // Exclude cell above
+      else true
     }
+
+    // Print the filtered list of coordinates and their contents
+    println("Filtered List of Coordinates and Contents:")
+    coordinatesAndContents.foreach { case (coord, content) =>
+      println(s"Coordinate: (${coord.x}, ${coord.y}), Content: $content")
+    }
+    coordinatesAndContents.find { case (coord, _) =>
+      coord == passivePlayer.coordinates
+    }.map(_._1)
+
+
+    // get the x coordinates
+    // get the y coordinates
+    // filter out things that are out of bounds
+    // filter out things not in range
+    //check blockers up
+    //checker blocker down
+    //check blocker right
+    // check blocker left
+
+
+  }
+
+  // Method to perform ranged attack only if the passive player is in range
+  def performRangedAttackIfInRange(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
+    checkRangedAttack(mapConfig, activePlayer, passivePlayer) match {
+      case Some(targetCoordinates) =>
+        performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
+      case None =>
+        println(s"Unable to open fire on the ${passivePlayer.character.avatar}")
+        passivePlayer
+    }
+  }
 
 
 }
