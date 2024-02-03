@@ -1,42 +1,13 @@
 import game.{Coordinates, GameUnit}
-import jobs.{CheckVictoryConditions, RangeAttackManager2, CloseCombatManager}
+import jobs.{CheckVictoryConditions, CloseCombatManager, RangeAttackManager2}
+import models.UnitState.ALIVE_STATE
 import models.{Characters, GameCharacter, MapConfig, Maps}
 
 import scala.collection.mutable.Queue
 import scala.io.StdIn
 import scala.annotation.tailrec
+
 object Main extends App {
-
-  //define game inputs
-  //map
-
-  /**
-   * what are our inputs
-   * player 1 that has army x with 2 units
-   * player 2 army y with 3 units
-   *
-   * deployment phase
-   * ......
-   *
-   * ------------------
-   * assumptions
-   *
-   * we have two players that have 1 model that each has a given position
-   *
-   * we know which map we are using
-   *
-   * So now the game can start. It takes these arguments, character1, location1, character2, location2, map, who won the coin toss
-   *
-   *
-   *
-   *
-   *
-   */
-
-
-  val ALIVE_STATE: String = "alive"
-  val DEAD_STATE: String = "dead"
-
 
   val player1Unit: GameCharacter = Characters.SpaceMarine
   val player1UnitLocation: Coordinates = Coordinates(3, 4)
@@ -65,43 +36,47 @@ object Main extends App {
     state = ALIVE_STATE
   )
 
-  val spaceMarineUnits: List[GameUnit] = List(unit1)
-  val orkUnits: List[GameUnit] = List(unit2, unit3)
+
   val player1Units: List[GameUnit] = List(unit1)
   val player2Units: List[GameUnit] = List(unit2, unit3)
-  val allUnits: List[GameUnit] = player1Units ++ player2Units
-
-
   val mapWeAreUsing = Maps.RockyDivide
   val isPlayer1First = true
 
 
   val checkRangedAttack = new RangeAttackManager2
   val checkCloseCombatAttack = new CloseCombatManager
-
-
-
-
-  //  // Check if a ranged attack is possible
-  //  RangeAttackManager2.checkRangedAttack(unit1.coordinates, unit2.coordinates)
-  //
-  //  // Perform a ranged attack
-  //  RangeAttackManager2.performRangedAttack(unit2.coordinates)
-
-
   val victoryChecker = new CheckVictoryConditions
-  //rangeattackMamnager and attacker manager need rto look like victory checker
+
   start(player1Units, player2Units, mapWeAreUsing, isPlayer1First)
 
+  def start(
+             player1: List[GameUnit],
+             player2: List[GameUnit],
+             map: MapConfig,
+             isPlayer1First: Boolean
+           ): Unit = {
+
+    if (isPlayer1First) turn(player1, player2, map)
+    else turn(player2, player1, map)
+
+  }
 
 
-  // Create an instance of CloseCombatManager
-  //  val closeCombatManager = ??? //new CloseCombatManager(mapWeAreUsing, unit1, unit2)
-  //  val rangeAttackManager = ??? //new RangeAttackManager2(mapWeAreUsing, unit1, unit2)
+  @tailrec
+  def turn(
+            activeUnits: List[GameUnit],
+            passiveUnits: List[GameUnit],
+            map: MapConfig
+          ): String = {
+    printBoard(map, activeUnits, passiveUnits)
+    val movedUnits = moveUnits(activeUnits, map)
+    printBoard(map, movedUnits, passiveUnits)
 
+    val victoryMessageO = victoryChecker.checkVictory(passiveUnits)
 
-  import scala.annotation.tailrec
-  import scala.io.StdIn
+    if (victoryMessageO.isDefined) victoryMessageO.get
+    else turn(passiveUnits, movedUnits, map)
+  }
 
   def moveUnits(units: List[GameUnit], map: MapConfig): List[GameUnit] = {
     @tailrec
@@ -224,27 +199,6 @@ object Main extends App {
   }
 
 
-
-  //
-  //
-  //  /**
-  //   * print board
-  //   * We could print valid moves for our user
-  //   * ask for input
-  //   * check if input is valid
-  //   * if valid
-  //   * update activePlayerUnit
-  //   * print board
-  //   * return updated activePlayerUnit
-  //   * if invalid
-  //   * we want to retry ask for input
-  //   */
-  //  //    map.printMap(unit1, unit2)
-  //  printBoard(map, unit1, unit2)
-  //
-  //  activePlayerUnit
-
-
   def printBoard(
                   map: MapConfig,
                   player1Units: List[GameUnit],
@@ -281,94 +235,8 @@ object Main extends App {
     println("      " + map.HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
   }
 
-  def start(
-             activePlayerUnits: List[GameUnit],
-             passivePlayerUnits: List[GameUnit],
-             map: MapConfig,
-             isPlayer1First: Boolean
-           ): Unit = {
-    @tailrec
-    def moveAllUnits(units: List[GameUnit], movedUnits: List[GameUnit]): List[GameUnit] = units match {
-      case Nil => movedUnits // If all units have been moved, return the list of moved units
-      case unit :: remainingUnits =>
-        printBoard(map, activePlayerUnits, passivePlayerUnits) // Print the current state of the map
-        val movedUnit :: restUnits = moveUnits(unit :: remainingUnits, map) // Move the first unit from the remaining units
-        val updatedMovedUnits = movedUnit :: movedUnits // Add the moved unit to the accumulator
-        printBoard(map, updatedMovedUnits, passivePlayerUnits, includeActiveMovementRange = false, includeActiveShootingRange = false) // Print the updated map with the moved unit
-        moveAllUnits(restUnits, updatedMovedUnits) // Recursively move the remaining units
-    }
 
-    val finalMovedUnits = moveAllUnits(activePlayerUnits, List.empty) // Start moving all units of the active player
-
-    val finalMapState = turn(finalMovedUnits, passivePlayerUnits, map) // Call the turn function with the final moved units and the passive player's units
-    printBoard(finalMapState, finalMovedUnits, passivePlayerUnits, includeActiveMovementRange = false, includeActiveShootingRange = false) // Print the final state of the map
-
-    // Swap the active and passive player units
-    val (newActivePlayerUnits, newPassivePlayerUnits) = (passivePlayerUnits, finalMovedUnits)
-
-    // Call start with the new active and passive player units
-    start(newActivePlayerUnits, newPassivePlayerUnits, finalMapState, !isPlayer1First)
-  }
-
-
-  def turn(
-            activePlayerUnits: List[GameUnit],
-            passivePlayerUnits: List[GameUnit],
-            map: MapConfig
-          ): MapConfig = { // Change return type to MapConfig
-    // Print the current state of the map
-    printBoard(map, activePlayerUnits, passivePlayerUnits)
-    // Move the active player's units
-    val movedUnits = moveUnits(activePlayerUnits, map)
-    // Print the updated state of the map after movement
-    printBoard(map, movedUnits, passivePlayerUnits, includeActiveMovementRange = false, includeActiveShootingRange = false)
-    // Check for ranged attacks, perform if possible, and print the updated state of the map
-    // val targetedUnits = checkRangedAttack.performRangedAttackIfInRange(map, movedUnits, passivePlayerUnits)
-    // printBoard(map, movedUnits, targetedUnit)
-    // Check for melee attacks, perform if possible, and print the updated state of the map
-    // val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnits, targetedUnit)
-    // printBoard(map, movedUnits, potentialMeleeTarget)
-    // Recursively call turn with the updated state of the game
-    // turn(potentialMeleeTarget, passivePlayerUnits, map)
-    map // Return the updated map state
-  }
-
-
-
-  // comment out bottom
-    //    // comment out top
-    //    val targetedUnits = checkRangedAttack.performRangedAttackIfInRange(map, movedUnits, player2Units)
-    //    printBoard(map, movedUnits, targetedUnit)
-    //    val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnits, targetedUnit)
-    //    printBoard(map, movedUnits, potentialMeleeTarget)
-    //    // comment out bottom
-
-
-    //    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
-    //    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
-    //    printBoard(map, movedUnit, shotUnit)
-
-    //      val potentialTarget = checkRangedAttack.performRangedAttackIfInRange(map, movedUnit, unit2)
-
-    //          val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
-    //      printBoard(map, movedUnit, potentialTarget)
-
-    //  // comment out top
-    //val targetedUnit = checkRangedAttack.performRangedAttackIfInRange(map, movedUnits.head, player2Units.head)
-    //  printBoard(map, movedUnits.head, targetedUnit)
-    //  val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnits.head, targetedUnit)
-    //  printBoard(map, movedUnits.head, potentialMeleeTarget)
-    //  // comment out bottom
-
-    // comment out top
-    //  victoryChecker.checkVictory(potentialMeleeTarget) match {
-    //    case Some(result) => println(result)
-    //      "In The Grim Darkness Of The Far Future There Is Only War"
-    //    case None => turn(potentialMeleeTarget, map) // Pass the map argument here
-    //  }
-    //  // comment out bottom
-
-  }
+}
 
 
 

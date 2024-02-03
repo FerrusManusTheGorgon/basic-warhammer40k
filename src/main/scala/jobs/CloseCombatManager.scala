@@ -1,6 +1,7 @@
 package jobs
 //
 import game.{Coordinates, GameUnit}
+import models.UnitState.DEAD_STATE
 import models.{Characters, MapConfig}
 
 import scala.io.StdIn
@@ -25,7 +26,7 @@ class CloseCombatManager {
 
       if (randomChance <= attackerWS) {
         println(activePlayer.character.closeCombatHitMessage + s"$defender at coordinates $targetCoordinates!")
-        passivePlayer.copy(state = "dead")
+        passivePlayer.copy(state = DEAD_STATE)
       } else {
         println(activePlayer.character.closeCombatMissMessage + s"$defender at coordinates $targetCoordinates!")
         passivePlayer
