@@ -4,7 +4,7 @@ import models.{Characters, GameCharacter, MapConfig, Maps}
 
 import scala.collection.mutable.Queue
 import scala.io.StdIn
-
+import scala.annotation.tailrec
 object Main extends App {
 
   //define game inputs
@@ -50,12 +50,27 @@ object Main extends App {
   val player2Unit: GameCharacter = Characters.Ork
   val player2UnitLocation: Coordinates = Coordinates(6, 8)
 
-
   val unit2: GameUnit = GameUnit(
     character = player2Unit,
     coordinates = player2UnitLocation,
     state = ALIVE_STATE
   )
+
+  val player2BigShootaUnit: GameCharacter = Characters.OrkWithBigShoota
+  val player2BigShootaUnitLocation: Coordinates = Coordinates(8, 10)
+
+  val unit3: GameUnit = GameUnit(
+    character = player2BigShootaUnit,
+    coordinates = player2BigShootaUnitLocation,
+    state = ALIVE_STATE
+  )
+
+  val spaceMarineUnits: List[GameUnit] = List(unit1)
+  val orkUnits: List[GameUnit] = List(unit2, unit3)
+  val player1Units: List[GameUnit] = List(unit1)
+  val player2Units: List[GameUnit] = List(unit2, unit3)
+  val allUnits: List[GameUnit] = player1Units ++ player2Units
+
 
   val mapWeAreUsing = Maps.RockyDivide
   val isPlayer1First = true
@@ -76,56 +91,66 @@ object Main extends App {
 
   val victoryChecker = new CheckVictoryConditions
   //rangeattackMamnager and attacker manager need rto look like victory checker
-  start(unit1, unit2, mapWeAreUsing, isPlayer1First)
+  start(player1Units, player2Units, mapWeAreUsing, isPlayer1First)
+
+
 
   // Create an instance of CloseCombatManager
   //  val closeCombatManager = ??? //new CloseCombatManager(mapWeAreUsing, unit1, unit2)
   //  val rangeAttackManager = ??? //new RangeAttackManager2(mapWeAreUsing, unit1, unit2)
 
 
-  @scala.annotation.tailrec
-  def movement(map: MapConfig, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): GameUnit = {
-    println(s"Move ${activePlayerUnit.character.avatar} or Hold Your Ground. Enter coordinates (format: x y) or Hold Your Ground")
-    val input: String = StdIn.readLine()
+  import scala.annotation.tailrec
+  import scala.io.StdIn
 
-    // Check if the input is "Hold Your Ground"
-    if (input.toLowerCase == "hold your ground") {
-      // If the player wants to hold their ground, return the current active player unit without any changes
-      activePlayerUnit
-    } else {
-      // If the input is not "Hold Your Ground", parse the coordinates and proceed as usual
-      parseCoordinates(input) match {
-        case Some(newCoordinates) =>
-          if (isValidMove(map, newCoordinates, activePlayerUnit, passivePlayerUnit)) {
-            // Return the current GameUnit with updated coordinates
-            activePlayerUnit.copy(coordinates = newCoordinates)
-          } else {
-            // If the move is not valid, ask the player to enter new coordinates
-            println("Invalid coordinates. Please enter valid coordinates.")
-            movement(map, activePlayerUnit, passivePlayerUnit)
+  def moveUnits(units: List[GameUnit], map: MapConfig): List[GameUnit] = {
+    @tailrec
+    def moveUnitsHelper(units: List[GameUnit], acc: List[GameUnit]): List[GameUnit] = units match {
+      case Nil => acc.reverse // Reverse the accumulator to maintain the original order
+      case unit :: remainingUnits =>
+        println(s"Move ${unit.character.avatar} or Hold Your Ground. Enter coordinates (format: x y) or Hold Your Ground")
+        val input: String = StdIn.readLine() // Get user input for coordinates
+        // Check if the input is "Hold Your Ground"
+        if (input.toLowerCase == "hold your ground") {
+          // If the player wants to hold their ground, add the current unit to the accumulator
+          moveUnitsHelper(remainingUnits, unit :: acc)
+        } else {
+          // If the input is not "Hold Your Ground", parse the coordinates and proceed as usual
+          parseCoordinates(input) match {
+            case Some(newCoordinates) =>
+              if (isValidMove(map, newCoordinates, unit, remainingUnits.headOption.getOrElse(unit))) {
+                // Add the current unit with updated coordinates to the accumulator
+                moveUnitsHelper(remainingUnits, unit.copy(coordinates = newCoordinates) :: acc)
+              } else {
+                // If the move is not valid, ask the player to enter new coordinates
+                println("Invalid coordinates. Please enter valid coordinates.")
+                moveUnitsHelper(units, acc)
+              }
+            case None =>
+              // If the input cannot be parsed, ask the player to enter coordinates again
+              println("Invalid input. Please enter coordinates in the format: x y")
+              moveUnitsHelper(units, acc)
           }
-        case None =>
-          // If the input cannot be parsed, ask the player to enter coordinates again
-          println("Invalid input. Please enter coordinates in the format: x y")
-          movement(map, activePlayerUnit, passivePlayerUnit)
-      }
+        }
     }
+
+    // Pass an empty string as input to start the movement loop
+    moveUnitsHelper(units, List.empty)
   }
 
 
-  // Parse string input into Coordinates because "input: String = StdIn.readLine()" is a string
-  // Parse string input into Coordinates
   def parseCoordinates(input: String): Option[Coordinates] = {
-    try {
-      val Array(x, y) = input.trim.split("\\s+").map(_.toInt)
-      Some(Coordinates(x, y))
-    } catch {
-      case _: NumberFormatException =>
-        println("Invalid input format. Please enter coordinates in the format: x y")
-        None
-      case _: Throwable =>
-        println("An unexpected error occurred while parsing coordinates.")
-        None
+    val coordinates = input.split(" ")
+    if (coordinates.length == 2) {
+      try {
+        val x = coordinates(0).toInt
+        val y = coordinates(1).toInt
+        Some(Coordinates(x, y))
+      } catch {
+        case _: NumberFormatException => None // If parsing fails, return None
+      }
+    } else {
+      None // If the input format is incorrect, return None
     }
   }
 
@@ -222,40 +247,32 @@ object Main extends App {
 
   def printBoard(
                   map: MapConfig,
-                  activePlayerUnit: GameUnit,
-                  passivePlayerUnit: GameUnit,
+                  player1Units: List[GameUnit],
+                  player2Units: List[GameUnit],
                   includeActiveMovementRange: Boolean = false,
                   includeActiveShootingRange: Boolean = false
                 ): Unit = {
-    val currentPassivePlayerStatus = if (passivePlayerUnit.state == DEAD_STATE) {
-      "$"
-    } else {
-      passivePlayerUnit.character.avatar
+    val boardState = (player1Units ++ player2Units).foldLeft(map.layout) { (acc, unit) =>
+      acc + (unit.coordinates -> unit.character.avatar)
     }
-    val currentMap = map.layout + (
-      activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
-      passivePlayerUnit.coordinates -> currentPassivePlayerStatus
-    )
 
     val movementRange = if (includeActiveMovementRange) {
-      //call method to check range here
-      //input unit (need current location, and movement), and currentMap: returns Map[Coordinates, String]
+      // call method to check range here
+      // input units (need current location, and movement), and currentMap: returns Map[Coordinates, String]
       Map.empty[Coordinates, String]
     } else Map.empty[Coordinates, String]
 
-    val shootingRange = if (includeActiveMovementRange) {
+    val shootingRange = if (includeActiveShootingRange) {
       Map.empty[Coordinates, String]
     } else Map.empty[Coordinates, String]
 
-    val boardState = currentMap
-      ++ movementRange
-      ++ shootingRange
+    val finalState = boardState ++ movementRange ++ shootingRange
 
     println(map.HORIZONTAL_BORDER)
 
     map.VERTICAL_RANGE.reverse.foreach { y =>
       val row = map.HORIZONTAL_RANGE.map { x =>
-        s"|  ${boardState(Coordinates(x, y))}  "
+        s"|  ${finalState.getOrElse(Coordinates(x, y), " ")}  "
       }.reduce((a, b) => a + b)
       println(f"$y%4d  " + row + "|")
       println(map.HORIZONTAL_BORDER)
@@ -264,54 +281,98 @@ object Main extends App {
     println("      " + map.HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
   }
 
-
   def start(
-             unit1: GameUnit,
-             unit2: GameUnit,
+             activePlayerUnits: List[GameUnit],
+             passivePlayerUnits: List[GameUnit],
              map: MapConfig,
              isPlayer1First: Boolean
            ): Unit = {
-    printBoard(map, unit1, unit2)
-    if (isPlayer1First) turn(unit1, unit2, map)
-    else turn(unit2, unit1, map)
-  }
-
-
-    def turn(
-              unit1: GameUnit,
-              unit2: GameUnit,
-              map: MapConfig): String ={
-
-
-      val movedUnit = movement(map, unit1, unit2)
-      printBoard(map, movedUnit, unit2)
-      //    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
-      //    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
-      //    printBoard(map, movedUnit, shotUnit)
-
-//      val potentialTarget = checkRangedAttack.performRangedAttackIfInRange(map, movedUnit, unit2)
-
-//          val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
-//      printBoard(map, movedUnit, potentialTarget)
-          val targetedUnit = checkRangedAttack.performRangedAttackIfInRange(map, movedUnit, unit2)
-          printBoard(map, movedUnit, targetedUnit)
-      val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnit, targetedUnit)
-      printBoard(map, movedUnit, potentialMeleeTarget)
-
-
-
-      victoryChecker.checkVictory(potentialMeleeTarget) match {
-        case Some(result) => println(result)
-          "In The Grim Darkness Of The Far Future There Is Only War"
-        case None => turn(potentialMeleeTarget, movedUnit, map)
-//          val newIsPlayer1First = !isPlayer1First // Switch the player turn
-          // Recursive call to start function with players switched
-
-      }
-
+    @tailrec
+    def moveAllUnits(units: List[GameUnit], movedUnits: List[GameUnit]): List[GameUnit] = units match {
+      case Nil => movedUnits // If all units have been moved, return the list of moved units
+      case unit :: remainingUnits =>
+        printBoard(map, activePlayerUnits, passivePlayerUnits) // Print the current state of the map
+        val movedUnit :: restUnits = moveUnits(unit :: remainingUnits, map) // Move the first unit from the remaining units
+        val updatedMovedUnits = movedUnit :: movedUnits // Add the moved unit to the accumulator
+        printBoard(map, updatedMovedUnits, passivePlayerUnits, includeActiveMovementRange = false, includeActiveShootingRange = false) // Print the updated map with the moved unit
+        moveAllUnits(restUnits, updatedMovedUnits) // Recursively move the remaining units
     }
 
+    val finalMovedUnits = moveAllUnits(activePlayerUnits, List.empty) // Start moving all units of the active player
+
+    val finalMapState = turn(finalMovedUnits, passivePlayerUnits, map) // Call the turn function with the final moved units and the passive player's units
+    printBoard(finalMapState, finalMovedUnits, passivePlayerUnits, includeActiveMovementRange = false, includeActiveShootingRange = false) // Print the final state of the map
+
+    // Swap the active and passive player units
+    val (newActivePlayerUnits, newPassivePlayerUnits) = (passivePlayerUnits, finalMovedUnits)
+
+    // Call start with the new active and passive player units
+    start(newActivePlayerUnits, newPassivePlayerUnits, finalMapState, !isPlayer1First)
   }
+
+
+  def turn(
+            activePlayerUnits: List[GameUnit],
+            passivePlayerUnits: List[GameUnit],
+            map: MapConfig
+          ): MapConfig = { // Change return type to MapConfig
+    // Print the current state of the map
+    printBoard(map, activePlayerUnits, passivePlayerUnits)
+    // Move the active player's units
+    val movedUnits = moveUnits(activePlayerUnits, map)
+    // Print the updated state of the map after movement
+    printBoard(map, movedUnits, passivePlayerUnits, includeActiveMovementRange = false, includeActiveShootingRange = false)
+    // Check for ranged attacks, perform if possible, and print the updated state of the map
+    // val targetedUnits = checkRangedAttack.performRangedAttackIfInRange(map, movedUnits, passivePlayerUnits)
+    // printBoard(map, movedUnits, targetedUnit)
+    // Check for melee attacks, perform if possible, and print the updated state of the map
+    // val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnits, targetedUnit)
+    // printBoard(map, movedUnits, potentialMeleeTarget)
+    // Recursively call turn with the updated state of the game
+    // turn(potentialMeleeTarget, passivePlayerUnits, map)
+    map // Return the updated map state
+  }
+
+
+
+  // comment out bottom
+    //    // comment out top
+    //    val targetedUnits = checkRangedAttack.performRangedAttackIfInRange(map, movedUnits, player2Units)
+    //    printBoard(map, movedUnits, targetedUnit)
+    //    val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnits, targetedUnit)
+    //    printBoard(map, movedUnits, potentialMeleeTarget)
+    //    // comment out bottom
+
+
+    //    val sitedUnit = checkRangedAttack.checkRangedAttack(map, movedUnit, unit2)
+    //    val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
+    //    printBoard(map, movedUnit, shotUnit)
+
+    //      val potentialTarget = checkRangedAttack.performRangedAttackIfInRange(map, movedUnit, unit2)
+
+    //          val shotUnit = checkRangedAttack.performRangedAttack(map, movedUnit, unit2)
+    //      printBoard(map, movedUnit, potentialTarget)
+
+    //  // comment out top
+    //val targetedUnit = checkRangedAttack.performRangedAttackIfInRange(map, movedUnits.head, player2Units.head)
+    //  printBoard(map, movedUnits.head, targetedUnit)
+    //  val potentialMeleeTarget = checkCloseCombatAttack.performCloseCombatAttackIfInRange(map, movedUnits.head, targetedUnit)
+    //  printBoard(map, movedUnits.head, potentialMeleeTarget)
+    //  // comment out bottom
+
+    // comment out top
+    //  victoryChecker.checkVictory(potentialMeleeTarget) match {
+    //    case Some(result) => println(result)
+    //      "In The Grim Darkness Of The Far Future There Is Only War"
+    //    case None => turn(potentialMeleeTarget, map) // Pass the map argument here
+    //  }
+    //  // comment out bottom
+
+  }
+
+
+
+
 
 
 
