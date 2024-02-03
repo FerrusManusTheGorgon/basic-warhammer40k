@@ -8,6 +8,18 @@ import scala.io.StdIn
 import scala.annotation.tailrec
 
 object Main extends App {
+  //TODO
+  /**
+   * enhance cooredinates case class to have up down ledt right methods, an adjacent method
+   * convert loops to use tail rec or fold left
+   * ensure passive and active players are always included
+   * move unit info into a different object
+   * move all movement code into a separate class
+   * 
+   * 
+   */
+  
+  
 
   val player1Unit: GameCharacter = Characters.SpaceMarine
   val player1UnitLocation: Coordinates = Coordinates(3, 4)
@@ -78,7 +90,7 @@ object Main extends App {
     else turn(passiveUnits, movedUnits, map)
   }
 
-  def moveUnits(units: List[GameUnit], map: MapConfig): List[GameUnit] = {
+  def moveUnits(units: List[GameUnit], map: MapConfig): List[GameUnit] = {//TODO
     @tailrec
     def moveUnitsHelper(units: List[GameUnit], acc: List[GameUnit]): List[GameUnit] = units match {
       case Nil => acc.reverse // Reverse the accumulator to maintain the original order
@@ -136,6 +148,7 @@ object Main extends App {
   }
 
 
+  //TODO
   def getShortestPath(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameUnit, passivePlayerUnit: GameUnit): Option[List[Coordinates]] = {
     val start = activePlayerUnit.coordinates
     val end = newCoordinates
