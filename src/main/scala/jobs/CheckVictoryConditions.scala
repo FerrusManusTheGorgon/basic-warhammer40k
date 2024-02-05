@@ -5,34 +5,28 @@ import models.{Characters, GameCharacter, MapConfig, Maps}
 
 class CheckVictoryConditions {
 
-  def checkVictory (passiveUnit: GameUnit): Option[String] = {
+  def checkVictory(passiveUnits: List[GameUnit]): Option[String] = {
     println("Checking victory conditions...")
 
     val ALIVE_STATE: String = "alive"
 
-    //    val player1Alive = unit1.state == ALIVE_STATE
-    //    val player2Alive = unit2.state == ALIVE_STATE
-    //    //    val sExists = map.layout.exists { case (_, value) => value == "S" }
-    //    //    val oExists = map.layout.exists { case (_, value) => value == "O" }
-    //    //
-    //    //    val result = (sExists, oExists) match {
-
-
-    if (passiveUnit.state == ALIVE_STATE) {
+    if (passiveUnits.exists(_.state == ALIVE_STATE)) {
       println("The Battle Rages On")
-      Option.empty[String]
+      None
     } else {
-      passiveUnit.character.avatar match {
-        case "S" =>
-          println("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
-          Option("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
+      passiveUnits.headOption.flatMap { unit =>
+        unit.character.avatar match {
+          case "S" =>
+            println("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
+            Some("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
 
-        case "O" =>
-          println("The Xenos have been Purged. A Glorious Victory for the Imperium")
-          Option("The Xenos have been Purged. A Glorious Victory for the Imperium")
-
+          case "O" =>
+            println("The Xenos have been Purged. A Glorious Victory for the Imperium")
+            Some("The Xenos have been Purged. A Glorious Victory for the Imperium")
+        }
       }
     }
   }
 }
+
 

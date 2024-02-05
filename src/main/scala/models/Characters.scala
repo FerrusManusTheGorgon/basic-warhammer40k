@@ -10,6 +10,7 @@ object Characters {
     weaponSkill = 95,
     movement = 10,
     avatar = "S",
+    name = "Space Marine",
     rangedAttackHitMessage = "Space Marine opened fire with his Bolter and eliminated the ",
     rangedAttackMissMessage = "Space Marine Bolts missed the ",
     closeCombatHitMessage = "Space eviscerated the xeno scum with his chain sword ",
@@ -24,6 +25,21 @@ object Characters {
     weaponSkill = 60,
     movement = 30,
     avatar = "O",
+    name = "Ork",
+    rangedAttackHitMessage = "Ork unleashed his slugga and blasted the ",
+    rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the ",
+    closeCombatHitMessage = "Ork smashed the Space Marine  with his choppa, Waaaaaggh!!! ",
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the choppa"
+  )
+
+  val OrkWithBigShoota = GameCharacter(
+    characterId = "666c5b72-c1ee-11ee-baab-325096b39f47",
+    ballisticSkill = 40,
+    range = 10,
+    weaponSkill = 50,
+    movement = 30,
+    avatar = "9",
+    name = "Ork",
     rangedAttackHitMessage = "Ork unleashed his Big Shoota and blasted the ",
     rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the ",
     closeCombatHitMessage = "Ork smashed the Space Marine  with his choppa, Waaaaaggh!!! ",
