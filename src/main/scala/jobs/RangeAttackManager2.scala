@@ -2,7 +2,7 @@ package jobs
 
 import game.{Coordinates, GameUnit}
 import models.{Characters, GameCharacter, MapConfig, Maps}
-
+import models.UnitState.ALIVE_STATE
 import scala.io.StdIn
 import scala.util.Random
 
@@ -20,27 +20,7 @@ class RangeAttackManager2 {
     println(s"Opponent's character $opponent is in range at coordinates $coordinates")
   }
 
-  // Method to perform ranged attack
-  //  def performRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
-  //    val defender = passivePlayer.character.avatar
-  //    val attackerBS = activePlayer.character.ballisticSkill
-  //
-  //    val randomChance = Random.nextInt(100) + 1
-  //    println(s"$randomChance vs $attackerBS")
-  //
-  //    if (randomChance <= attackerBS) {
-  //      println(activePlayer.character.rangedAttackHitMessage + s"$defender at coordinates ${passivePlayer.coordinates}!")
-  //      // Return a new GameUnit with the updated map configuration and dead state
-  //      passivePlayer.copy(state = "dead")
-  //    } else {
-  //      println(activePlayer.character.rangedAttackMissMessage + s"$defender at coordinates ${passivePlayer.coordinates}!")
-  //      passivePlayer // Return the original GameUnit
-  //    }
-  //
-  //  }
 
-  // Method to perform ranged attack
-  // Method to perform ranged attack
   @scala.annotation.tailrec
   final def performRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit, targetCoordinates: Coordinates): GameUnit = {
     //    if (attackPerformed) return passivePlayer
@@ -59,7 +39,7 @@ class RangeAttackManager2 {
       if (randomChance <= attackerBS) {
         println(activePlayer.character.rangedAttackHitMessage + s"$defender at coordinates $targetCoordinates!")
         // Return a new GameUnit with the updated map configuration and dead state
-        passivePlayer.copy(state = "dead")
+        passivePlayer.copy(state = "dead", character = passivePlayer.character.copy(avatar = "$"))
       } else {
         println(activePlayer.character.rangedAttackMissMessage + s"$defender at coordinates $targetCoordinates!")
         passivePlayer // Return the original GameUnit
@@ -70,22 +50,18 @@ class RangeAttackManager2 {
       println(s"Invalid input. Please enter $targetCoordinates or 'Hold Fire'.")
       performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
     }
-  }
-  // Method to check ranged attack
-  //  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): Unit = {
-  //    println("Checking ranged attack...")
-  //    val row = activePlayer.coordinates.x
-  //    val col = activePlayer.coordinates.y
-  //    val range = activePlayer.character.range
-  //    val opponent = passivePlayer.character.avatar
 
-  // Method to check ranged attack
-  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): Option[Coordinates] = {
+    }
+
+  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayers: List[GameUnit]): Option[(Coordinates, GameUnit)] = {
     println("Checking ranged attack...")
     val effectiveRange = math.min(activePlayer.character.range, math.max(mapConfig.horizontalLength, mapConfig.verticalLength))
-    val opponent = passivePlayer.character.avatar
+
     val row = activePlayer.coordinates.x
     val col = activePlayer.coordinates.y
+
+    // Filter out passive units that are not in the ALIVE_STATE
+    val alivePassivePlayers = passivePlayers.filter(_.state == ALIVE_STATE)
 
     // Create a list to store coordinates and their contents
     var coordinatesAndContents: List[(Coordinates, String)] = List.empty
@@ -130,15 +106,10 @@ class RangeAttackManager2 {
       }
     }
 
-    // Find the coordinate of the blocked cell, if any
-    //    val blockedCoordinate = coordinatesAndContents.find { case (_, content) =>
-    //      content == "X"
-    //    }.map(_._1) // Extracting only the coordinate from the found tuple
     val blockerCoordinates = coordinatesAndContents.filter { case (_, content) =>
       content == "X"
     }.map(_._1)
-    //val blockedCoordinates = mapConfig.blockers
-    // Filter out coordinates and contents based on the position of the blocked cell
+
     blockerCoordinates.foreach { blockedCoordinate =>
       val (bx, by) = (blockedCoordinate.x, blockedCoordinate.y)
       coordinatesAndContents = coordinatesAndContents.filter { case (c, _) =>
@@ -149,24 +120,9 @@ class RangeAttackManager2 {
         else if (x == row && y < col && by < col) false // Exclude cells to the left of the blocked cell
         else if (y == col && x > row && bx > row) false // Exclude cells above the blocked cell
         else if (y == col && x < row && bx < row) false // Exclude cells below the blocked cell
-
-
         else true // Keep cells in other directions
-
       }
-//      // Filter out cells that are immediately adjacent to the active player's cell
-//      coordinatesAndContents = coordinatesAndContents.filter { case (c, _) =>
-//        val (x, y) = (c.x, c.y)
-//        if (x == activePlayer.coordinates.x && y == activePlayer.coordinates.y + 1) false // Exclude cell to the right
-//        else if (x == activePlayer.coordinates.x && y == activePlayer.coordinates.y - 1) false // Exclude cell to the left
-//        else if (y == activePlayer.coordinates.y && x == activePlayer.coordinates.x + 1) false // Exclude cell below
-//        else if (y == activePlayer.coordinates.y && x == activePlayer.coordinates.x - 1) false // Exclude cell above
-//        else true
-//      }
-
-
     }
-
 
     // Filter out cells that are immediately adjacent to the active player's cell
     coordinatesAndContents = coordinatesAndContents.filter { case (c, _) =>
@@ -178,70 +134,48 @@ class RangeAttackManager2 {
       else true
     }
 
-    // Print the filtered list of coordinates and their contents
-    println("Filtered List of Coordinates and Contents:")
-    coordinatesAndContents.foreach { case (coord, content) =>
-      println(s"Coordinate: (${coord.x}, ${coord.y}), Content: $content")
-    }
+    // Find the first cell that contains a passive player in the ALIVE_STATE
     coordinatesAndContents.find { case (coord, _) =>
-      coord == passivePlayer.coordinates
-    }.map(_._1)
-
-
-    // get the x coordinates
-    // get the y coordinates
-    // filter out things that are out of bounds
-    // filter out things not in range
-    //check blockers up
-    //checker blocker down
-    //check blocker right
-    // check blocker left
-
-
-  }
-
-  // Method to perform ranged attack only if the passive player is in range
-  def performRangedAttackIfInRange(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
-    checkRangedAttack(mapConfig, activePlayer, passivePlayer) match {
-      case Some(targetCoordinates) =>
-        performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
-      case None =>
-        println(s"Unable to open fire on the ${passivePlayer.character.avatar}")
-        passivePlayer
+      alivePassivePlayers.exists(_.coordinates == coord)
+    }.map { case (coord, content) =>
+      (coord, alivePassivePlayers.find(_.coordinates == coord).get)
     }
   }
+
+
+  //  // Method to perform ranged attack only if the passive player is in range
+//  def performRangedAttackIfInRange(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayer: GameUnit): GameUnit = {
+//    checkRangedAttack(mapConfig, activePlayer, passivePlayer) match {
+//      case Some(targetCoordinates) =>
+//        performRangedAttack(mapConfig, activePlayer, passivePlayer, targetCoordinates)
+//      case None =>
+//        println(s"Unable to open fire on the ${passivePlayer.character.avatar}")
+//        passivePlayer
+//    }
+//  }
+@scala.annotation.tailrec
+final def performRangedAttackIfInRange(units: List[GameUnit], map: MapConfig, passivePlayers: List[GameUnit]): List[GameUnit] = units match {
+  case Nil => units // No more units to process, return the units list
+  case unit :: remainingUnits =>
+    // Check if the current unit can perform a ranged attack
+    checkRangedAttack(map, unit, passivePlayers) match {
+      case Some((targetCoordinates, passivePlayer)) =>
+        // If the unit can attack, perform the attack and update the units list accordingly
+        val updatedUnits = performRangedAttack(map, unit, passivePlayer, targetCoordinates)
+        // Continue processing the remaining units with the updated units list
+        performRangedAttackIfInRange(remainingUnits, map, passivePlayers)
+      case None =>
+        // If the unit cannot attack, continue processing the remaining units without any updates
+        performRangedAttackIfInRange(remainingUnits, map, passivePlayers)
+    }
+}
+
+
+
 
 
 }
 
-//    // Check vertically above and below within range
-//    (row - range to row + range)
-//      .find(x => x >= 0 && x < mapConfig.verticalLength)
-//      .foreach { x =>
-//        val currentCell = Coordinates(x, col)
-//        println(s"Checking cell ($x, $col)...")
-//        if (isCellBlocked(mapConfig, currentCell)) {
-//          println("Found blocked cell, exiting...")
-//        } else if (mapConfig.layout.getOrElse(currentCell, "") == "X") {
-//          println("Found X, exiting...")
-//        } else if (mapConfig.layout.getOrElse(currentCell, "") == "O" || mapConfig.layout.getOrElse(currentCell, "") == "S") {
-//          println(s"Found opponent at ($x, $col), exiting...")
-//          printOpponentInRange(opponent, Coordinates(x, col))
-//        }
-//      }
-//
-//    // Check horizontally left and right within range
-//    (col - range to col + range)
-//      .find(y => y >= 0 && y < mapConfig.horizontalLength)
-//      .foreach { y =>
-//        println(s"Checking cell ($row, $y)...")
-//        if (mapConfig.layout.getOrElse(Coordinates(row, y), "") == "X") {
-//          println("Found X, exiting...")
-//        } else if (mapConfig.layout.getOrElse(Coordinates(row, y), "") == "O" || mapConfig.layout.getOrElse(Coordinates(row, y), "") == "S") {
-//          println(s"Found opponent at ($row, $y), exiting...")
-//          printOpponentInRange(opponent, Coordinates(row, y))
-//        }
-//      }
 
 
 
