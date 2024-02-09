@@ -52,7 +52,7 @@ class RangeAttackManager2 {
         if (randomChance <= attackerBS) {
           println(hitMessage + s"${passivePlayer.character.avatar} at coordinates (${passivePlayer.coordinates.x}, ${passivePlayer.coordinates.y})!")
           // Update the passive player's state to "dead" and return the updated GameUnit
-          val updatedPassivePlayer = passivePlayer.copy(state = DEAD_STATE, character = passivePlayer.character.copy(avatar = "$"))
+          val updatedPassivePlayer = passivePlayer.copy(state = DEAD_STATE, character = passivePlayer.character.copy(avatar = ""))
           println("Updated passive player after attack:")
           println(updatedPassivePlayer)
           updatedPassivePlayer
@@ -221,7 +221,17 @@ val targetCoordinates = potentialTargets.map(_._1)
       coordinatesAndContents.map(_._1).contains(p.coordinates)
     }
   }
-  // bottom
+
+  // Method to get the current status of passive units, filtering out dead units
+  def getCurrentPassiveUnitsStatus(passiveUnits: List[GameUnit]): List[GameUnit] = {
+    // Filter out units that are not in the DEAD_STATE
+    val alivePassiveUnits = passiveUnits.filter(_.state == ALIVE_STATE)
+    println("Current passive units status:")
+    alivePassiveUnits.foreach { unit =>
+      println(s"- ${unit.character.avatar} at coordinates (${unit.coordinates.x}, ${unit.coordinates.y}), state: ${unit.state}")
+    }
+    alivePassiveUnits
+  } // bottom
   //def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayers: List[GameUnit]): List[(Coordinates, GameUnit)] = {
   //  println("Checking ranged attack...")
   //  val effectiveRange = math.min(activePlayer.character.range, math.max(mapConfig.horizontalLength, mapConfig.verticalLength))
@@ -327,14 +337,20 @@ val targetCoordinates = potentialTargets.map(_._1)
   //        }
   //      }
   //bottom
+   // Method to perform ranged attacks if passive units are in range
+
+  // Method to perform ranged attacks if passive units are in range
   final def performRangedAttackIfInRange(activeUnits: List[GameUnit], map: MapConfig, passiveUnits: List[GameUnit]): List[GameUnit] = {
     activeUnits match {
       case Nil => passiveUnits // No more units to process, return the units list
       case unit :: remainingUnits =>
         println(s"Processing unit: ${unit.character.avatar}") // Print the current unit being processed
 
+        // Get the current status of passive units, filtering out dead units
+        val currentPassiveUnits = getCurrentPassiveUnitsStatus(passiveUnits)
+
         // Check if the current unit can perform a ranged attack
-        checkRangedAttack(map, unit, passiveUnits) match {
+        checkRangedAttack(map, unit, currentPassiveUnits) match {
           case potentialTargets if potentialTargets.nonEmpty =>
             // If there are potential targets, print them
             println("Potential targets for attack:")
@@ -346,9 +362,16 @@ val targetCoordinates = potentialTargets.map(_._1)
             val updatedUnit = performRangedAttack(map, unit, potentialTargets)
 
             // Filter out passive units that were eliminated during the attack
-            val remainingPassiveUnits = passiveUnits.map { passiveUnit =>
-              if (passiveUnit.character.avatar == updatedUnit.character.avatar) updatedUnit else passiveUnit
+            val remainingPassiveUnits = currentPassiveUnits.map { passiveUnit =>
+              if (passiveUnit.coordinates == updatedUnit.coordinates) updatedUnit else passiveUnit
             }.filter(_.state == ALIVE_STATE)
+
+
+            // Print the current status of passive units after filtering
+            println("Current passive units status:")
+            remainingPassiveUnits.foreach { unit =>
+              println(s"- ${unit.character.avatar} at coordinates (${unit.coordinates.x}, ${unit.coordinates.y}), state: ${unit.state}")
+            }
 
             // Print the remaining passive units after filtering
             println("Remaining passive units after attack:")
@@ -362,7 +385,7 @@ val targetCoordinates = potentialTargets.map(_._1)
           case _ =>
             // If there are no potential targets, print a message and continue processing the remaining units
             println("No enemies in range or line of sight.")
-            performRangedAttackIfInRange(remainingUnits, map, passiveUnits)
+            performRangedAttackIfInRange(remainingUnits, map, currentPassiveUnits)
         }
     }
   }
