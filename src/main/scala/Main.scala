@@ -90,14 +90,12 @@ object Main extends App {
 
     printBoard(map, movedUnits, judgedUnits)
     // Perform victory check and assign the result to a val
-    val victorious = victoryChecker.checkVictory(judgedUnits) match {
+    val victorious = victoryChecker.checkVictory(movedUnits, judgedUnits) match {
       case Some(victoryMessage) =>
         println(s"Victory Condition: $victoryMessage")
-        true // Indicate victory
       case None =>
         // If there's no victory, proceed with the game
         turn(activeUnits = judgedUnits, passiveUnits = movedUnits, map = map)
-        false // No victory yet
     }
 
   }

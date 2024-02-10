@@ -363,7 +363,7 @@ val targetCoordinates = potentialTargets.map(_._1)
 
             // Filter out passive units that were eliminated during the attack
             val remainingPassiveUnits = currentPassiveUnits.map { passiveUnit =>
-              if (passiveUnit.coordinates == updatedUnit.coordinates) updatedUnit else passiveUnit
+              if (passiveUnit.character.characterId == updatedUnit.character.characterId) updatedUnit else passiveUnit
             }.filter(_.state == ALIVE_STATE)
 
 
