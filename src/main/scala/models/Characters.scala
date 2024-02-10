@@ -20,7 +20,7 @@ object Characters {
 
   val Ork = GameCharacter(
     characterId = "a0d58842-7ad6-11ee-b72f-325096b39f47",
-    ballisticSkill = 20,
+    ballisticSkill = 99,
     range = 5,
     weaponSkill = 60,
     movement = 30,
@@ -34,7 +34,7 @@ object Characters {
 
   val OrkWithBigShoota = GameCharacter(
     characterId = "666c5b72-c1ee-11ee-baab-325096b39f47",
-    ballisticSkill = 40,
+    ballisticSkill = 99,
     range = 10,
     weaponSkill = 50,
     movement = 30,

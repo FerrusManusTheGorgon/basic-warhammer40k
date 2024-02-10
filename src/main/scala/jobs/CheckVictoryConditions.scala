@@ -2,15 +2,14 @@ package jobs
 
 import game.{Coordinates, GameUnit}
 import models.{Characters, GameCharacter, MapConfig, Maps}
-
+import models.UnitState.ALIVE_STATE
 class CheckVictoryConditions {
 
   def checkVictory(passiveUnits: List[GameUnit]): Option[String] = {
     println("Checking victory conditions...")
 
-    val ALIVE_STATE: String = "alive"
-
-    if (passiveUnits.exists(_.state == ALIVE_STATE)) {
+//    if (passiveUnits.exists(_.state == ALIVE_STATE)) {
+    if (passiveUnits.nonEmpty) {
       println("The Battle Rages On")
       None
     } else {
@@ -19,8 +18,7 @@ class CheckVictoryConditions {
           case "S" =>
             println("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
             Some("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
-
-          case "O" =>
+          case "O" | "9" =>
             println("The Xenos have been Purged. A Glorious Victory for the Imperium")
             Some("The Xenos have been Purged. A Glorious Victory for the Imperium")
         }
