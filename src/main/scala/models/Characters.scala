@@ -5,10 +5,10 @@ object Characters {
 
   val SpaceMarine = GameCharacter(
     characterId = "a617321a-7ad6-11ee-afff-325096b39f47",
-    ballisticSkill = 90,
-    range = 4,
-    weaponSkill = 95,
-    movement = 10,
+    ballisticSkill = 80,
+    range = 5,
+    weaponSkill = 75,
+    movement = 6,
     avatar = "S",
     name = "Space Marine",
     rangedAttackHitMessage = "Space Marine opened fire with his Bolter and eliminated the ",
@@ -20,12 +20,12 @@ object Characters {
 
   val Ork = GameCharacter(
     characterId = "a0d58842-7ad6-11ee-b72f-325096b39f47",
-    ballisticSkill = 99,
+    ballisticSkill = 25,
     range = 5,
-    weaponSkill = 60,
-    movement = 30,
+    weaponSkill = 55,
+    movement = 4,
     avatar = "O",
-    name = "Ork",
+    name = "OrkWithSluggaAndChoppa",
     rangedAttackHitMessage = "Ork unleashed his slugga and blasted the ",
     rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the ",
     closeCombatHitMessage = "Ork smashed the Space Marine  with his choppa, Waaaaaggh!!! ",
@@ -33,16 +33,44 @@ object Characters {
   )
 
   val OrkWithBigShoota = GameCharacter(
-    characterId = "666c5b72-c1ee-11ee-baab-325096b39f47",
-    ballisticSkill = 99,
-    range = 10,
-    weaponSkill = 50,
-    movement = 30,
+    characterId = "666c5b72-c1ee-11ee-bbbb-325096b39f47",
+    ballisticSkill = 66,
+    range = 6,
+    weaponSkill = 25,
+    movement = 4,
     avatar = "9",
-    name = "Ork",
+    name = "OrkWithBigShoota",
     rangedAttackHitMessage = "Ork unleashed his Big Shoota and blasted the ",
     rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the ",
     closeCombatHitMessage = "Ork smashed the Space Marine  with his choppa, Waaaaaggh!!! ",
     closeCombatMissMessage = "The Space Marine dodged the wild of swing of the choppa"
+  )
+
+  val OrkWithScorcha = GameCharacter(
+    characterId = "666c5b72-c1ee-11ee-bccb-325096b39f47",
+    ballisticSkill = 66,
+    range = 3,
+    weaponSkill = 33,
+    movement = 3,
+    avatar = "8",
+    name = "OrkWithScorcha",
+    rangedAttackHitMessage = "Ork unleashed his Skorcha and cooked the ",
+    rangedAttackMissMessage = "Ork Skorcha missed the ",
+    closeCombatHitMessage = "Ork smashed the Space Marine  with his Skorcha, Waaaaaggh!!! ",
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the Skorcha"
+  )
+
+  val OrkWithBigChoppa = GameCharacter(
+    characterId = "666c5b72-c1ee-11ee-bxxb-325096b39f47",
+    ballisticSkill = 22,
+    range = 5,
+    weaponSkill = 66,
+    movement = 3,
+    avatar = "7",
+    name = "OrkWithBigChoppa",
+    rangedAttackHitMessage = "Ork unleashed his Skorcha and cooked the ",
+    rangedAttackMissMessage = "Ork Skorcha missed the ",
+    closeCombatHitMessage = "Ork smashed the Space Marine  with his Skorcha, Waaaaaggh!!! ",
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the Skorcha"
   )
 }

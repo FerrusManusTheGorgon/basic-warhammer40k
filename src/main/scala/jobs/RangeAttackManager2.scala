@@ -26,7 +26,7 @@ class RangeAttackManager2 {
     // Display the potential targets
     println("Potential targets:")
     potentialTargets.foreach { target =>
-      println(s"-${activePlayer.character.avatar} has ${target.character.avatar} at coordinates (${target.coordinates.x}, ${target.coordinates.y})in range and line of sight")
+      println(s"-${activePlayer.character.avatar} ${activePlayer.character.name} has ${target.character.avatar} ${target.character.name} at coordinates (${target.coordinates.x}, ${target.coordinates.y})in range and line of sight")
     }
 
     println("Enter the avatar of the character you want to attack or 'Hold Fire'")
@@ -101,7 +101,7 @@ class RangeAttackManager2 {
 //  }
 
   //top
-  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayers: List[GameUnit]): List[GameUnit] = {
+  def checkRangedAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayers: List[GameUnit], activeUnits:List[GameUnit]): List[GameUnit] = {
     println("Checking ranged attack...")
     val effectiveRange = math.min(activePlayer.character.range, math.max(mapConfig.horizontalLength, mapConfig.verticalLength))
 
@@ -158,9 +158,15 @@ class RangeAttackManager2 {
       p.coordinates.x == row || p.coordinates.y == col
     }.map(p => (p.coordinates, p.character.avatar))
 
-    val blockerCoordinates = coordinatesAndContents.filter { case (_, content) =>
-      content == "X"
-    }.map(_._1)
+    val blockerCoordinates = coordinatesAndContents.flatMap { case (coord, _) =>
+      if (mapConfig.blocker.contains(coord) || activeUnits.exists(_.coordinates == coord)) {
+        println(s"Blocked coordinate at (${coord.x}, ${coord.y})")
+        Some(coord)
+      } else None
+    }
+
+
+
     //    val blockerCoordinates = coordinatesAndContents.filter { case (_, content) =>//TODO match character coords to cell list
     //      content != "" && content != "$"
     //    }.map(_._1)
@@ -350,7 +356,7 @@ val targetCoordinates = potentialTargets.map(_._1)
         val currentPassiveUnits = getCurrentPassiveUnitsStatus(passiveUnits)
 
         // Check if the current unit can perform a ranged attack
-        checkRangedAttack(map, unit, currentPassiveUnits) match {
+        checkRangedAttack(map, unit, currentPassiveUnits, activeUnits) match {
           case potentialTargets if potentialTargets.nonEmpty =>
             // If there are potential targets, print them
             println("Potential targets for attack:")
