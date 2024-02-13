@@ -1,7 +1,7 @@
 package jobs
 
 import game.{Coordinates, GameUnit}
-import models.{Characters, GameCharacter, MapConfig, Maps}
+import models.{Characters, GameCharacter, MapConfig, Maps, Coordinates}
 import models.UnitState.{ALIVE_STATE, DEAD_STATE}
 
 import scala.io.StdIn
@@ -15,7 +15,7 @@ class CloseCombatManager2 {
     // Display the potential targets
     println("Potential targets:")
     potentialTargets.foreach { target =>
-      println(s"-${activePlayer.character.avatar} has ${target.character.avatar} at coordinates (${target.coordinates.x}, ${target.coordinates.y})in range and line of sight")
+      println(s"-${activePlayer.character.avatar} ${activePlayer.character.name} has ${target.character.avatar} ${target.character.name} at coordinates (${target.coordinates.x}, ${target.coordinates.y})in range and line of sight")
     }
 
     println("Enter the avatar of the character you want to attack or 'Hold Your Ground'")
@@ -35,17 +35,15 @@ class CloseCombatManager2 {
         val randomChance = Random.nextInt(100) + 1
         println(s"$randomChance vs $attackerWS")
 
-        val hitMessage = activePlayer.character.closeCombatHitMessage
-        val missMessage = activePlayer.character.closeCombatMissMessage
         if (randomChance <= attackerWS) {
-          println(hitMessage + s"${passivePlayer.character.avatar} at coordinates (${passivePlayer.coordinates.x}, ${passivePlayer.coordinates.y})!")
+          meleeMessage(activePlayer.character.closeCombatHitMessage, passivePlayer)
           // Update the passive player's state to "dead" and return the updated GameUnit
           val updatedPassivePlayer = passivePlayer.copy(state = DEAD_STATE, character = passivePlayer.character.copy(avatar = "$"))
           println("Updated passive player after attack:")
           println(updatedPassivePlayer)
           updatedPassivePlayer
         } else {
-          println(missMessage + s"${passivePlayer.character.avatar} at coordinates (${passivePlayer.coordinates.x}, ${passivePlayer.coordinates.y})!")
+          meleeMessage(activePlayer.character.closeCombatMissMessage, passivePlayer)
           passivePlayer // Return the original GameUnit
         }
 
@@ -55,56 +53,21 @@ class CloseCombatManager2 {
     }
   }
 
+  def meleeMessage(prefix: String, passivePlayer: GameUnit): Unit = {
+    println(prefix + s"${passivePlayer.character.avatar} at coordinates (${passivePlayer.coordinates.x}, ${passivePlayer.coordinates.y})!")
+  }
 
   def checkCloseCombatAttack(mapConfig: MapConfig, activePlayer: GameUnit, passivePlayers: List[GameUnit]): List[GameUnit] = {
     println("Checking close combat attack...")
-
-    val row = activePlayer.coordinates.x
-    val col = activePlayer.coordinates.y
-
-    // Filter out passive units that are not in the ALIVE_STATE
-    val alivePassivePlayers = passivePlayers.filter(_.state == ALIVE_STATE)
-
-    // Create a list to store coordinates and their contents
-    var coordinatesAndContents: List[(Coordinates, String)] = List.empty
-    // Check vertically above
-    val coordAbove = Coordinates(row + 1, col)
-    val contentAbove = mapConfig.layout.getOrElse(coordAbove, "")
-    coordinatesAndContents ::= (coordAbove, contentAbove)
-    // Check vertically below
-    val coordBelow = Coordinates(row - 1, col)
-    val contentBelow = mapConfig.layout.getOrElse(coordBelow, "")
-    coordinatesAndContents ::= (coordBelow, contentBelow)
-    // Check horizontally left
-    val coordLeft = Coordinates(row, col - 1)
-    val contentLeft = mapConfig.layout.getOrElse(coordLeft, "")
-    coordinatesAndContents ::= (coordLeft, contentLeft)
-    // Check horizontally right
-    val coordRight = Coordinates(row, col + 1)
-    val contentRight = mapConfig.layout.getOrElse(coordRight, "")
-    coordinatesAndContents ::= (coordRight, contentRight)
-
-    val potentialTargets = alivePassivePlayers.filter { p =>
-      p.coordinates.x == row || p.coordinates.y == col
-    }.map(p => (p.coordinates, p.character.avatar))
-
-    val targetsInSight = alivePassivePlayers.filter { p =>
-      coordinatesAndContents.map(_._1).contains(p.coordinates)
-    }
-
-    // Print potential targets
-    println("Potential targets for close combat:")
-    potentialTargets.foreach { target =>
-      println(s"- ${target._2} at coordinates (${target._1.x}, ${target._1.y})")
-    }
+    val potentialMeleeTargets = passivePlayers.filter(p => activePlayer.coordinates.adjacent.contains(p.coordinates))
 
     // Print targets in sight
-    println("Targets in sight for close combat:")
-    targetsInSight.foreach { target =>
+    println("Targets within striking distance for close combat:")
+    potentialMeleeTargets.foreach { target =>
       println(s"- ${target.character.avatar} at coordinates (${target.coordinates.x}, ${target.coordinates.y})")
     }
 
-    targetsInSight
+    potentialMeleeTargets
   }
 
 
@@ -138,13 +101,13 @@ class CloseCombatManager2 {
             }
 
             // Perform the attack and update the units list accordingly
-            val updatedUnit = performCloseCombatAttack(map, unit, potentialTargets)
+            val potentialCasualty = performCloseCombatAttack(map, unit, potentialTargets)
 
-            // Filter out passive units that were eliminated during the attack
-            val remainingPassiveUnits = currentPassiveUnits.map { passiveUnit =>
-              if (passiveUnit.coordinates == updatedUnit.coordinates) updatedUnit else passiveUnit
-            }.filter(_.state == ALIVE_STATE)
-
+            val remainingPassiveUnits = if (potentialCasualty.state == ALIVE_STATE) {
+              currentPassiveUnits
+            } else {
+              currentPassiveUnits.filterNot( p => p.character.characterId == potentialCasualty.character.characterId)
+            }
 
             // Print the current status of passive units after filtering
             println("Current passive units status:")
@@ -152,18 +115,11 @@ class CloseCombatManager2 {
               println(s"- ${unit.character.avatar} at coordinates (${unit.coordinates.x}, ${unit.coordinates.y}), state: ${unit.state}")
             }
 
-            // Print the remaining passive units after filtering
-            println("Remaining passive units after attack:")
-            remainingPassiveUnits.foreach { unit =>
-              println(s"- ${unit.character.avatar} at coordinates (${unit.coordinates.x}, ${unit.coordinates.y}), state: ${unit.state}")
-            }
-
             // Continue processing the remaining units with the updated units list
             performCloseCombatAttackIfInRange(remainingUnits, map, remainingPassiveUnits)
-
           case _ =>
             // If there are no potential targets, print a message and continue processing the remaining units
-            println("No enemies in range or line of sight.")
+            println("No enemies within striking distance.")
             performCloseCombatAttackIfInRange(remainingUnits, map, currentPassiveUnits)
         }
     }
