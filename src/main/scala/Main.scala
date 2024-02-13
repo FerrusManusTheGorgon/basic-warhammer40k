@@ -96,7 +96,7 @@ def turn(
   val movedUnits = movementManager.moveUnits(activeUnits, map, passiveUnits)
   printBoard(map, movedUnits, passiveUnits)
 
-  val rangedAttackedUnits = rangeAttackManager.performRangedAttackIfInRange(movedUnits, map, passiveUnits)
+  val rangedAttackedUnits = rangeAttackManager.performRangedAttackIfInRange(movedUnits, List.empty, map, passiveUnits)
   printBoard(map, movedUnits, rangedAttackedUnits)
 
   val closeCombatAttackedUnits = closeCombatManager.performCloseCombatAttackIfInRange(movedUnits, map, rangedAttackedUnits)
