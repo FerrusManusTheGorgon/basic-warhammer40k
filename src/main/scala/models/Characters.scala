@@ -14,7 +14,12 @@ object Characters {
     rangedAttackHitMessage = "Space Marine opened fire with his Bolter and eliminated the ",
     rangedAttackMissMessage = "Space Marine Bolts missed the ",
     closeCombatHitMessage = "Space eviscerated the xeno scum with his chain sword ",
-    closeCombatMissMessage = "The xeno evaded the sweep of the chain sword"
+    closeCombatMissMessage = "The xeno evaded the sweep of the chain sword",
+    currentPosition = Coordinates(3, 4),
+    currentStateAlive = false,
+    movePhaseCompleted= false,
+    shootingPhaseCompleted= false,
+    closeCombatPhaseCompleted= false,
 
   )
 
@@ -29,7 +34,12 @@ object Characters {
     rangedAttackHitMessage = "Ork unleashed his slugga and blasted the ",
     rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the ",
     closeCombatHitMessage = "Ork smashed the Space Marine  with his choppa, Waaaaaggh!!! ",
-    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the choppa"
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the choppa",
+    currentPosition = Coordinates(6, 8),
+    currentStateAlive = false,
+    movePhaseCompleted = false,
+    shootingPhaseCompleted = false,
+    closeCombatPhaseCompleted = false,
   )
 
   val OrkWithBigShoota = GameCharacter(
@@ -43,7 +53,12 @@ object Characters {
     rangedAttackHitMessage = "Ork unleashed his Big Shoota and blasted the ",
     rangedAttackMissMessage = "Ork dakka dakka dakka dakka missed the ",
     closeCombatHitMessage = "Ork smashed the Space Marine  with his choppa, Waaaaaggh!!! ",
-    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the choppa"
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the choppa",
+    currentPosition = Coordinates(8, 10),
+    currentStateAlive = false,
+    movePhaseCompleted = false,
+    shootingPhaseCompleted = false,
+    closeCombatPhaseCompleted = false,
   )
 
   val OrkWithScorcha = GameCharacter(
@@ -57,7 +72,12 @@ object Characters {
     rangedAttackHitMessage = "Ork unleashed his Skorcha and cooked the ",
     rangedAttackMissMessage = "Ork Skorcha missed the ",
     closeCombatHitMessage = "Ork smashed the Space Marine  with his Skorcha, Waaaaaggh!!! ",
-    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the Skorcha"
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the Skorcha",
+    currentPosition = Coordinates(10, 10),
+    currentStateAlive = false,
+    movePhaseCompleted = false,
+    shootingPhaseCompleted = false,
+    closeCombatPhaseCompleted = false,
   )
 
   val OrkWithBigChoppa = GameCharacter(
@@ -71,6 +91,11 @@ object Characters {
     rangedAttackHitMessage = "Ork unleashed his Skorcha and cooked the ",
     rangedAttackMissMessage = "Ork Skorcha missed the ",
     closeCombatHitMessage = "Ork smashed the Space Marine  with his Skorcha, Waaaaaggh!!! ",
-    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the Skorcha"
+    closeCombatMissMessage = "The Space Marine dodged the wild of swing of the Skorcha",
+    currentPosition = Coordinates(1, 10),
+    currentStateAlive = false,
+    movePhaseCompleted = false,
+    shootingPhaseCompleted = false,
+    closeCombatPhaseCompleted = false,
   )
 }

@@ -1,7 +1,5 @@
 package models
 
-import game.Coordinates
-
 
 case object Maps {
   val RockyDivide = MapConfig(
