@@ -1,7 +1,7 @@
 package jobs
 
-import game.{Coordinates, GameUnit}
-import models.{Characters, GameCharacter, MapConfig, Maps}
+import game.GameUnit
+import models.{Characters, Coordinates, GameCharacter, MapConfig, Maps}
 import models.UnitState.{ALIVE_STATE, DEAD_STATE}
 
 import scala.io.StdIn

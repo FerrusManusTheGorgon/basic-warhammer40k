@@ -1,6 +1,6 @@
 package jobs
 
-import game.{Coordinates, GameUnit}
+import game.GameUnit
 import models.UnitState.{ALIVE_STATE, DEAD_STATE}
 import models.{Characters, GameCharacter, MapConfig, Maps}
 

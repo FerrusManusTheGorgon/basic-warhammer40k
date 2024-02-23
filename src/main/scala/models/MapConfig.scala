@@ -1,6 +1,6 @@
 package models
 
-import game.{Coordinates, GameUnit}
+import game.GameUnit
 
 case class MapConfig(
                       horizontalLength: Int,

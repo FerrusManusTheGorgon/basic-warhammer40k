@@ -1,6 +1,6 @@
 package game
 
-import models.GameCharacter
+import models.{Coordinates, GameCharacter}
 
 case class GameUnit(
                      character: GameCharacter,

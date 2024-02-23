@@ -1,4 +1,5 @@
 package models
+import models.Coordinates
 
 case class GameCharacter(
                       characterId: String,
@@ -11,6 +12,32 @@ case class GameCharacter(
                       rangedAttackHitMessage: String,
                       rangedAttackMissMessage: String,
                       closeCombatHitMessage: String,
-                      closeCombatMissMessage: String  
+                      closeCombatMissMessage: String ,
+                      currentPosition: Coordinates,
+                      currentStateAlive: Boolean ,
+                      movePhaseCompleted: Boolean,
+                      shootingPhaseCompleted: Boolean,
+                      closeCombatPhaseCompleted: Boolean,
 
-                    )
+
+                    ){
+  def moved ={
+    this.copy(movePhaseCompleted = true)
+  }
+  def shot = {
+    this.copy(shootingPhaseCompleted = true)
+  }
+
+  def assaulted = {
+    this.copy(closeCombatPhaseCompleted = true)
+  }
+
+
+  def turnCompleted = {
+    this.copy(
+      movePhaseCompleted = true,
+      shootingPhaseCompleted = true,
+      closeCombatPhaseCompleted = true
+    )
+  }
+}

@@ -1,6 +1,6 @@
 package jobs
 
-import game.{Coordinates, GameUnit}
+import game.GameUnit
 import models.{Characters, GameCharacter, MapConfig, Maps}
 import models.UnitState.ALIVE_STATE
 class CheckVictoryConditions {
