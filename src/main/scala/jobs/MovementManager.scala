@@ -187,7 +187,7 @@ class MovementManager(implicit cache: Cache[Board]) {
 def httpMove(move: Coordinates, boardId: String): String = {
   // Retrieve the cached board using the provided boardId
   val cachedBoard: Option[Board] = sync.get(boardId)
-cachedBoard.map(_.print).getOrElse(";)")
+cachedBoard.map(_.printBoard).getOrElse(";)")
 }
 
 

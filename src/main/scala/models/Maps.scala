@@ -8,7 +8,6 @@ case object Maps {
     blocker = List(
       Coordinates(6, 5),
       Coordinates(7, 5),
-      Coordinates(8, 5),
       Coordinates(9, 5),
       Coordinates(10, 5),
       Coordinates(3, 3),

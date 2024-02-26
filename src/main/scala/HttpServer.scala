@@ -97,17 +97,18 @@ object MinimalApplication extends cask.MainRoutes {
         isPlayer1Turn = true,
         turnNumber = 0
       )
+      // Print the board directly
+      board.printBoard()
       // Cache the board
       sync.put(boardId)(board)
       Thread.sleep(100) // Add a brief delay
-
+//
       // Retrieve the cached board
       Thread.sleep(100) // Add a brief delay
 //      val cachedBoard: Option[Board] = get[IO, String, Board](boardId).unsafeRunSync()
 
       // Return a success message
-      s"Board generated with boardId: $boardId and cached."
-    } else if (userInput == "n") {
+      s"Board generated with boardId: $boardId and cached.\n${board.printBoard()}"    } else if (userInput == "n") {
       // Return a message indicating the user opted not to start the game
       "Game not started. Exiting..."
     } else {
