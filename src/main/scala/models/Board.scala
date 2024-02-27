@@ -1,4 +1,5 @@
 package models
+
 import models.{Coordinates, MapConfig}
 import models.{Characters, GameCharacter}
 
@@ -18,30 +19,45 @@ case class Board(
                   turnNumber: Int
                 ) {
 
-  def updatePlayer1Unit(updatedCharacter: GameCharacter): List[GameCharacter] = {
-    this.player1.filterNot(_.characterId == updatedCharacter.characterId) :+ updatedCharacter
+
+  def updateActiveUnit(updatedCharacter: GameCharacter): Board = {
+    if (isPlayer1Turn) {
+      val newCharacters = this.player1.filterNot(_.characterId == updatedCharacter.characterId) :+ updatedCharacter
+      this.copy(player1 = newCharacters)
+    } else {
+      val newCharacters = this.player2.filterNot(_.characterId == updatedCharacter.characterId) :+ updatedCharacter
+      this.copy(player2 = newCharacters)
+    }
   }
 
-  def updatePlayer2Unit(updatedCharacter: GameCharacter): List[GameCharacter] = {
-    this.player2.filterNot(_.characterId == updatedCharacter.characterId) :+ updatedCharacter
+  def updatePassiveUnit(updatedCharacter: GameCharacter): Board = {
+    if (!isPlayer1Turn) {
+      val newCharacters = this.player1.filterNot(_.characterId == updatedCharacter.characterId) :+ updatedCharacter
+      this.copy(player1 = newCharacters)
+    } else {
+      val newCharacters = this.player2.filterNot(_.characterId == updatedCharacter.characterId) :+ updatedCharacter
+      this.copy(player2 = newCharacters)
+    }
   }
 
-  def getPassivePlayers : List[GameCharacter]= {
-    if(this.isPlayer1Turn){
+
+  def getPassivePlayers: List[GameCharacter] = {
+    if (this.isPlayer1Turn) {
       this.player2
-    }else{
+    } else {
       this.player1
     }
   }
 
-//  def print: String = {
-//
-//    "XXXXXX"
-//  }
+  //  def print: String = {
+  //
+  //    "XXXXXX"
+  //  }
 
   def printBoard(): String = {
+//    println(s"${this.player1.mkString(" ")}")
     val boardState = Array.fill(map.verticalLength, map.horizontalLength)(map.EMPTY_SQUARE)
-
+//    println(s"${this.player1.mkString(" ")}")
     // Place player 1 characters on the board
     player1.foreach { character =>
       val Coordinates(x, y) = character.currentPosition

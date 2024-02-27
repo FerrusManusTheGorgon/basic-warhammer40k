@@ -3,13 +3,16 @@ package app
 import models.{Board, Characters, Coordinates, GameCharacter, MapConfig, Maps}
 import game.GameUnit
 import models.UnitState.ALIVE_STATE
-import jobs.{CheckVictoryConditions, CloseCombatManager2, GraveYardManager, MapUtils, MovementManager, RangeAttackManager2}
+import jobs.{CheckVictoryConditions, CloseCombatManager2, GraveYardManager, MapUtils, MovementManager, MovementManagerHttp, RangeAttackManager2}
 import scalacache._
 import scalacache.caffeine._
 import scalacache.modes.sync._
 import scalacache.serialization.binary._
 import cask.model.Request
+
 import java.util.UUID
+import cask.model.Request
+import upickle.default._
 
 
 object MinimalApplication extends cask.MainRoutes {
@@ -61,12 +64,12 @@ object MinimalApplication extends cask.MainRoutes {
   val rangeAttackManager = new RangeAttackManager2
   val closeCombatManager = new CloseCombatManager2
   val graveYardManager = new GraveYardManager
-  val movementManager = new MovementManager
+  val movementManager = new MovementManagerHttp
   val victoryChecker = new CheckVictoryConditions
 
-//  val cache: IO[Cache[IO, String, Board]] = CaffeineCache[IO, String, Board]
-//
-//  implicit val caffeineCache: Cache[IO, String, Board] = cache.unsafeRunSync()
+  //  val cache: IO[Cache[IO, String, Board]] = CaffeineCache[IO, String, Board]
+  //
+  //  implicit val caffeineCache: Cache[IO, String, Board] = cache.unsafeRunSync()
 
 
   start()
@@ -102,13 +105,14 @@ object MinimalApplication extends cask.MainRoutes {
       // Cache the board
       sync.put(boardId)(board)
       Thread.sleep(100) // Add a brief delay
-//
+      //
       // Retrieve the cached board
       Thread.sleep(100) // Add a brief delay
-//      val cachedBoard: Option[Board] = get[IO, String, Board](boardId).unsafeRunSync()
+      //      val cachedBoard: Option[Board] = get[IO, String, Board](boardId).unsafeRunSync()
 
       // Return a success message
-      s"Board generated with boardId: $boardId and cached.\n${board.printBoard()}"    } else if (userInput == "n") {
+      s"Board generated with boardId: $boardId and cached.\n${board.printBoard()}"
+    } else if (userInput == "n") {
       // Return a message indicating the user opted not to start the game
       "Game not started. Exiting..."
     } else {
@@ -117,13 +121,50 @@ object MinimalApplication extends cask.MainRoutes {
     }
   }
 
+  //  @cask.post("/move")
+  //  def move(): String = {
+  //    movementManager.httpMove(Coordinates(1, 1), "123")
+  //  }
+
   @cask.post("/move")
-  def move(): String = {
-    movementManager.httpMove(Coordinates(1, 1), "123")
+  def move(request: Request): String = {
+    // Prompt the user to input a curl command with the coordinates
+    val promptMessage = "Please input a curl command with the coordinates to move a unit."
+    val userInput = request.text().trim
+    val boardId = "123" // Assuming the boardId is fixed for now
+    val maybeCoordinates = parseCoordinates(userInput)
+    // Check if the parsed coordinates are valid
+    maybeCoordinates match {
+      case Some(coordinates) =>
+        // Call the httpMove method on the movementManager instance
+        movementManager.httpMove(coordinates, boardId) + s"\nBoard generated with boardId: $boardId and cached."
+      case None =>
+        // Return the prompt message if the input format is incorrect
+        promptMessage
+    }
+  }
+  def parseCoordinates(input: String): Option[Coordinates] = {
+    val coordinates = input.split(" ")
+    if (coordinates.length == 2) {
+      try {
+        val x = coordinates(0).toInt
+        val y = coordinates(1).toInt
+        Some(Coordinates(x, y))
+      } catch {
+        case _: NumberFormatException => None // If parsing fails, return None
+      }
+    } else {
+      None // If the input format is incorrect, return None
+    }
   }
 
-
-
+  @cask.post("/shoot")
+  def move(request: Request): String = {
+    // Prompt the user to input a curl command with the coordinates
+    val promptMessage = "Please input a curl command with the coordinates to shoot a unit."
+    val userInput = request.text().trim
+    val boardId = "123" // Assuming the boardId is fixed for now
+    val maybeCoordinates = parseCoordinates(userInput)
 
 
   initialize()
@@ -139,3 +180,4 @@ object MinimalApplication extends cask.MainRoutes {
 // curl http://localhost:8080/start/
 // curl -X POST http://localhost:8080/start/ -d "y"
 // curl -X POST http://localhost:8080/move
+// curl -X POST -H "Content-Type: application/json" -d '{"boardId":"123", "moveCoordinates":"3 4"}' http://localhost:8080/move

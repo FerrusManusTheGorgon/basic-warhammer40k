@@ -72,6 +72,8 @@ class MovementManager(implicit cache: Cache[Board]) {
     }
   }
 
+
+
 //  def isValidMove2(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameCharacter, passivePlayers: List[GameCharacter]): Boolean = {
 //    map.isWithinBounds(newCoordinates) && passivePlayers.forall { passivePlayer =>
 //      getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayer).isDefined
@@ -184,13 +186,6 @@ class MovementManager(implicit cache: Cache[Board]) {
 //    // Evaluate the IO action
 //    val result: Option[Board] = cachedBoard.unsafeRunSync()
 //result.map(_.print).getOrElse(":(")
-def httpMove(move: Coordinates, boardId: String): String = {
-  // Retrieve the cached board using the provided boardId
-  val cachedBoard: Option[Board] = sync.get(boardId)
-cachedBoard.map(_.printBoard).getOrElse(";)")
-}
-
-
 
 
 //    result match {
