@@ -1,29 +1,32 @@
 package models
+
 import models.Coordinates
 
 case class GameCharacter(
-                      characterId: String,
-                      range: Int,
-                      ballisticSkill: Int,
-                      weaponSkill: Int,
-                      movement: Int,
-                      avatar: String,
-                      name: String,  
-                      rangedAttackHitMessage: String,
-                      rangedAttackMissMessage: String,
-                      closeCombatHitMessage: String,
-                      closeCombatMissMessage: String ,
-                      currentPosition: Coordinates,
-                      currentStateAlive: Boolean ,
-                      movePhaseCompleted: Boolean,
-                      shootingPhaseCompleted: Boolean,
-                      closeCombatPhaseCompleted: Boolean,
+                          characterId: String,
+                          range: Int,
+                          ballisticSkill: Int,
+                          weaponSkill: Int,
+                          movement: Int,
+                          avatar: String,
+                          name: String,
+                          rangedAttackHitMessage: String,
+                          rangedAttackMissMessage: String,
+                          closeCombatHitMessage: String,
+                          closeCombatMissMessage: String,
+                          currentPosition: Coordinates,
+                          currentStateAlive: Boolean,
+                          movePhaseCompleted: Boolean,
+                          shootingPhaseCompleted: Boolean,
+                          closeCombatPhaseCompleted: Boolean,
+                          state: String
 
 
-                    ){
-  def moved ={
+                        ) {
+  def moved = {
     this.copy(movePhaseCompleted = true)
   }
+
   def shot = {
     this.copy(shootingPhaseCompleted = true)
   }

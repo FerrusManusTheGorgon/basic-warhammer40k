@@ -143,6 +143,7 @@ object MinimalApplication extends cask.MainRoutes {
         promptMessage
     }
   }
+
   def parseCoordinates(input: String): Option[Coordinates] = {
     val coordinates = input.split(" ")
     if (coordinates.length == 2) {
@@ -159,16 +160,31 @@ object MinimalApplication extends cask.MainRoutes {
   }
 
   @cask.post("/shoot")
-  def move(request: Request): String = {
+  def shoot(request: Request): String = {
     // Prompt the user to input a curl command with the coordinates
     val promptMessage = "Please input a curl command with the coordinates to shoot a unit."
     val userInput = request.text().trim
     val boardId = "123" // Assuming the boardId is fixed for now
     val maybeCoordinates = parseCoordinates(userInput)
 
+    def parseCoordinates(input: String): Option[Coordinates] = {
+      val coordinates = input.split(" ")
+      if (coordinates.length == 2) {
+        try {
+          val x = coordinates(0).toInt
+          val y = coordinates(1).toInt
+          Some(Coordinates(x, y))
+        } catch {
+          case _: NumberFormatException => None // If parsing fails, return None
+        }
+      } else {
+        None // If the input format is incorrect, return None
 
-  initialize()
-}
+      }
+    }
+
+    initialize()
+  }
 
 
 

@@ -20,6 +20,7 @@ object Characters {
     movePhaseCompleted= false,
     shootingPhaseCompleted= false,
     closeCombatPhaseCompleted= false,
+    state = "alive"
 
   )
 
@@ -40,6 +41,7 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 
   val OrkWithBigShoota = GameCharacter(
@@ -59,6 +61,7 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 
   val OrkWithScorcha = GameCharacter(
@@ -78,6 +81,7 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 
   val OrkWithBigChoppa = GameCharacter(
@@ -97,5 +101,6 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 }
