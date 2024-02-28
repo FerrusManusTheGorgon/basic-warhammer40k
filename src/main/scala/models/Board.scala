@@ -49,6 +49,14 @@ case class Board(
     }
   }
 
+  def getActivePlayers: List[GameCharacter] = {
+    if (this.isPlayer1Turn) {
+      this.player1
+    } else {
+      this.player2
+    }
+  }
+
   //  def print: String = {
   //
   //    "XXXXXX"
