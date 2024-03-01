@@ -5,8 +5,8 @@ object Characters {
 
   val SpaceMarine = GameCharacter(
     characterId = "a617321a-7ad6-11ee-afff-325096b39f47",
-    ballisticSkill = 80,
-    range = 5,
+    ballisticSkill = 10,
+    range = 15,
     weaponSkill = 75,
     movement = 6,
     avatar = "S",
@@ -20,6 +20,7 @@ object Characters {
     movePhaseCompleted= false,
     shootingPhaseCompleted= false,
     closeCombatPhaseCompleted= false,
+    state = "alive"
 
   )
 
@@ -40,6 +41,7 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 
   val OrkWithBigShoota = GameCharacter(
@@ -59,6 +61,7 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 
   val OrkWithScorcha = GameCharacter(
@@ -78,6 +81,7 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 
   val OrkWithBigChoppa = GameCharacter(
@@ -85,7 +89,7 @@ object Characters {
     ballisticSkill = 22,
     range = 5,
     weaponSkill = 66,
-    movement = 3,
+    movement = 20,
     avatar = "7",
     name = "OrkWithBigChoppa",
     rangedAttackHitMessage = "Ork unleashed his Skorcha and cooked the ",
@@ -97,5 +101,6 @@ object Characters {
     movePhaseCompleted = false,
     shootingPhaseCompleted = false,
     closeCombatPhaseCompleted = false,
+    state = "alive"
   )
 }

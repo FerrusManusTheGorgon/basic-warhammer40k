@@ -3,7 +3,7 @@ package app
 import models.{Board, Characters, Coordinates, GameCharacter, MapConfig, Maps}
 import game.GameUnit
 import models.UnitState.ALIVE_STATE
-import jobs.{CheckVictoryConditions, CloseCombatManager2, GraveYardManager, MapUtils, MovementManager, MovementManagerHttp, RangeAttackManager2}
+import jobs.{CheckVictoryConditions, CloseCombatManager2, CloseCombatManager2Http, GraveYardManager, MapUtils, MovementManager, MovementManagerHttp, RangeAttackManager2, RangeAttackMangerHttp}
 import scalacache._
 import scalacache.caffeine._
 import scalacache.modes.sync._
@@ -61,8 +61,8 @@ object MinimalApplication extends cask.MainRoutes {
 
 
   val george = new RangeAttackManager2
-  val rangeAttackManager = new RangeAttackManager2
-  val closeCombatManager = new CloseCombatManager2
+  val rangeAttackManager = new RangeAttackMangerHttp
+  val closeCombatManager = new CloseCombatManager2Http
   val graveYardManager = new GraveYardManager
   val movementManager = new MovementManagerHttp
   val victoryChecker = new CheckVictoryConditions
@@ -143,6 +143,7 @@ object MinimalApplication extends cask.MainRoutes {
         promptMessage
     }
   }
+
   def parseCoordinates(input: String): Option[Coordinates] = {
     val coordinates = input.split(" ")
     if (coordinates.length == 2) {
@@ -158,17 +159,253 @@ object MinimalApplication extends cask.MainRoutes {
     }
   }
 
-  @cask.post("/shoot")
-  def move(request: Request): String = {
-    // Prompt the user to input a curl command with the coordinates
-    val promptMessage = "Please input a curl command with the coordinates to shoot a unit."
+  @cask.get("/shoot/")
+  def checkShoot(request: Request): String = {
+    val boardId = "123" // Assuming the boardId is fixed for now
+    // Retrieve the cached board using the boardId
+    val cachedBoard: Option[Board] = sync.get(boardId)
+    cachedBoard match {
+      case Some(board) =>
+        // If the board is found, call the method to check ranged attack
+        val targetedCharacters = rangeAttackManager.checkRangedAttackHttp(board)
+        // Build a string to display the list of targeted characters
+        val result = new StringBuilder
+        result.append("List of targeted characters:\n")
+        targetedCharacters.foreach { character =>
+          result.append(s"${character.avatar} in range at (${character.currentPosition.x}, ${character.currentPosition.y})\n")
+        }
+        // Convert the StringBuilder to a string and return it
+        result.toString()
+      case None =>
+        // If the board with the provided boardId is not found, return an error message
+        "Board not found. Please provide a valid boardId."
+    }
+  }
+
+//  @cask.post("/shoot/")
+//  def Shoot(request: Request): String = {
+//    val userInput = request.text().trim
+//    val boardId = "123" // Assuming the boardId is fixed for now
+//    val shootCoordinates = parseCoordinates2(userInput)
+//
+//    val result = shootCoordinates match {
+//      case Some(coordinates) =>
+//        // If the board is found, call the method to check ranged attack
+////        val shotCharacter = rangeAttackManager.rangeAttackHttpIfInRange(coordinates, boardId)
+//        // Build a string to display the targeted character
+//        shootCoordinates match {
+//          case Some(character) =>
+//            rangeAttackManager.rangeAttackHttpIfInRange(coordinates, boardId)
+//        }
+//      case None =>
+//        // If the coordinates are not provided or invalid, return an error message
+//        "Invalid coordinates provided. Please provide two integers separated by a space."
+//    }
+//
+//    result
+//  }
+//
+//  def parseCoordinates2(input: String): Option[Coordinates] = {
+//    val coordinates = input.split(" ")
+//    if (coordinates.length == 2) {
+//      try {
+//        val x = coordinates(0).toInt
+//        val y = coordinates(1).toInt
+//        Some(Coordinates(x, y))
+//      } catch {
+//        case _: NumberFormatException => None // If parsing fails, return None
+//      }
+//    } else {
+//      None // If the input format is incorrect, return None
+//    }
+//  }
+
+//  @cask.post("/shoot/")
+//  def Shoot(request: Request): String = {
+//    val userInput = request.text().trim
+//    val boardId = "123" // Assuming the boardId is fixed for now
+//    val shootCoordinates = parseCoordinates2(userInput)
+//
+//    val result = shootCoordinates match {
+//      case Some(coordinates) =>
+//        // If the board is found, call the method to check ranged attack
+//        val cachedBoard: Option[Board] = sync.get(boardId)
+//        cachedBoard match {
+//          case Some(board) =>
+//            val targetedCharacters = rangeAttackManager.checkRangedAttackHttp(board) // Capture targetedCoordinates
+//            println(targetedCharacters)
+//            rangeAttackManager.rangeAttackHttpIfInRange(coordinates, boardId) match {
+//              case "Ranged attack performed successfully." =>
+//                // If ranged attack was performed successfully, execute performRangedAttack
+//                rangeAttackManager.performRangedAttackHttp(board.map, board.getActivePlayers.head, coordinates, targetedCharacters)
+//                "Ranged attack executed."
+//                board.printBoard()
+//              case message =>
+//                message // Return the message from rangeAttackHttpIfInRange
+//            }
+//          case None =>
+//            "Board not found. Please provide a valid boardId."
+//        }
+//      case None =>
+//        // If the coordinates are not provided or invalid, return an error message
+//        "Invalid coordinates provided. Please provide two integers separated by a space."
+//    }
+//
+//    result
+//  }
+
+  @cask.post("/shoot/")
+  def shoot(request: Request): String = {
     val userInput = request.text().trim
     val boardId = "123" // Assuming the boardId is fixed for now
-    val maybeCoordinates = parseCoordinates(userInput)
+    val shootCoordinates = parseCoordinates2(userInput)
 
+    val result = shootCoordinates match {
+      case Some(coordinates) =>
+        val cachedBoard: Option[Board] = sync.get(boardId)
+        cachedBoard match {
+          case Some(board) =>
+            val targetedCharacters = rangeAttackManager.checkRangedAttackHttp(board)
+            val attackResult = rangeAttackManager.rangeAttackHttpIfInRange(coordinates, boardId)
+            attackResult match {
+              case "Ranged attack performed successfully." =>
+                val hitOrMissMessage = rangeAttackManager.performRangedAttackHttp(board.map, board.getActivePlayers.head, coordinates, targetedCharacters, board)
+                // Print hit or miss message to local host terminal
+                println(hitOrMissMessage)
+                // Print the updated board to local host terminal
+                println("Updated board:")
+                board.printBoard()
+                hitOrMissMessage
+              case message =>
+                message
+            }
+          case None =>
+            "Board not found. Please provide a valid boardId."
+        }
+      case None =>
+        "Invalid coordinates provided. Please provide two integers separated by a space."
+    }
 
-  initialize()
-}
+    result
+  }
+  def parseCoordinates2(input: String): Option[Coordinates] = {
+    val coordinates = input.split(" ")
+    if (coordinates.length == 2) {
+      try {
+        val x = coordinates(0).toInt
+        val y = coordinates(1).toInt
+        Some(Coordinates(x, y))
+      } catch {
+        case _: NumberFormatException => None // If parsing fails, return None
+      }
+    } else {
+      None // If the input format is incorrect, return None
+    }
+  }
+
+  @cask.get("/assault/")
+  def checkAssault(request: Request): String = {
+    val boardId = "123" // Assuming the boardId is fixed for now
+    // Retrieve the cached board using the boardId
+    val cachedBoard: Option[Board] = sync.get(boardId)
+    cachedBoard match {
+      case Some(board) =>
+        // If the board is found, call the method to check ranged attack
+        val targetedCharacters = closeCombatManager.checkCloseCombatAttackHttp(board)
+        // Build a string to display the list of targeted characters
+        val result = new StringBuilder
+        result.append("List of targeted characters:\n")
+        targetedCharacters.foreach { character =>
+          result.append(s"${character.avatar} in assault range at (${character.currentPosition.x}, ${character.currentPosition.y})\n")
+        }
+        // Convert the StringBuilder to a string and return it
+        result.toString()
+      case None =>
+        // If the board with the provided boardId is not found, return an error message
+        "Board not found. Please provide a valid boardId."
+    }
+  }
+
+  @cask.post("/assault/")
+  def assault(request: Request): String = {
+    val userInput = request.text().trim
+    val boardId = "123" // Assuming the boardId is fixed for now
+    val assaultCoordinates = parseCoordinates3(userInput)
+
+    val result = assaultCoordinates match {
+      case Some(coordinates) =>
+        val cachedBoard: Option[Board] = sync.get(boardId)
+        cachedBoard match {
+          case Some(board) =>
+            val targetedCharacters = closeCombatManager.checkCloseCombatAttackHttp(board)
+            val attackResult = closeCombatManager.performCloseCombatAttackHttpIfInRange(coordinates, boardId)
+            attackResult match {
+              case "Close Combat attack performed successfully." =>
+                val hitOrMissMessage = closeCombatManager.performCloseCombatAttackHttp(board.map, board.getActivePlayers.head, coordinates, targetedCharacters, board)
+//                val hitOrMissMessage = rangeAttackManager.performRangedAttackHttp(board.map, board.getActivePlayers.head, coordinates, targetedCharacters, board)
+
+                // Print hit or miss message to local host terminal
+                println(hitOrMissMessage)
+                // Print the updated board to local host terminal
+                println("Updated board:")
+                board.printBoard()
+                hitOrMissMessage
+              case message =>
+                message
+            }
+          case None =>
+            "Board not found. Please provide a valid boardId."
+        }
+      case None =>
+        "Invalid coordinates provided. Please provide two integers separated by a space."
+    }
+
+    result
+  }
+
+  def parseCoordinates3(input: String): Option[Coordinates] = {
+    val coordinates = input.split(" ")
+    if (coordinates.length == 2) {
+      try {
+        val x = coordinates(0).toInt
+        val y = coordinates(1).toInt
+        Some(Coordinates(x, y))
+      } catch {
+        case _: NumberFormatException => None // If parsing fails, return None
+      }
+    } else {
+      None // If the input format is incorrect, return None
+    }
+  }
+
+  //  @cask.post("/shoot")
+//  def shoot(request: Request): String = {
+//    // Prompt the user to input a curl command with the coordinates
+//    val promptMessage = "Please input a curl command with the coordinates to shoot a unit."
+//    val userInput = request.text().trim
+//    val boardId = "123" // Assuming the boardId is fixed for now
+//    val maybeCoordinates = parseCoordinates(userInput)
+//  }
+
+//    def parseCoordinates(input: String): Option[Coordinates] = {
+//      val coordinates = input.split(" ")
+//      if (coordinates.length == 2) {
+//        try {
+//          val x = coordinates(0).toInt
+//          val y = coordinates(1).toInt
+//          Some(Coordinates(x, y))
+//        } catch {
+//          case _: NumberFormatException => None // If parsing fails, return None
+//        }
+//      } else {
+//        None // If the input format is incorrect, return None
+//
+//      }
+//    }
+
+    initialize()
+  }
+
 
 
 

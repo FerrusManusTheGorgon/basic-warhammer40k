@@ -236,3 +236,5 @@ class RangeAttackManager(isXMove: Boolean, gameMap: GameMap) {
   }
 }
 
+
+
