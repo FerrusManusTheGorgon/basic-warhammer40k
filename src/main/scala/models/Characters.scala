@@ -5,7 +5,7 @@ object Characters {
 
   val SpaceMarine = GameCharacter(
     characterId = "a617321a-7ad6-11ee-afff-325096b39f47",
-    ballisticSkill = 80,
+    ballisticSkill = 10,
     range = 15,
     weaponSkill = 75,
     movement = 6,
@@ -89,7 +89,7 @@ object Characters {
     ballisticSkill = 22,
     range = 5,
     weaponSkill = 66,
-    movement = 3,
+    movement = 20,
     avatar = "7",
     name = "OrkWithBigChoppa",
     rangedAttackHitMessage = "Ork unleashed his Skorcha and cooked the ",
