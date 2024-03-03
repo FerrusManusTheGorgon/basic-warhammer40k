@@ -178,6 +178,7 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
     alivePassivePlayers.filter { p =>
       coordinatesAndContents.map(_._1).contains(p.currentPosition)
     }
+
   }
 
   // Method to get the current status of passive units, filtering out dead units
@@ -277,34 +278,80 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
   //        "Board not found. Please provide a valid boardId."
   //    }
   //  }
-  def rangeAttackHttpIfInRange(shootCoordinates: Coordinates, boardId: String): String = {
+//  def rangeAttackHttpIfInRange(shootCoordinates: Coordinates, boardId: String, avatar: String): String = {
+//    val cachedBoard: Option[Board] = sync.get(boardId)
+//    cachedBoard match {
+//      case Some(board) =>
+//        // Get the active player's units from the board
+//        val activePlayerUnits = board.getActivePlayers
+//        val currentShootUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.shootingPhaseCompleted)
+//        currentShootUnitOption match {
+//          case Some(currentShootUnit) =>
+//            // Check ranged attack for the current shoot unit
+//            checkRangedAttack(board.map, currentShootUnit, board.getPassivePlayers, activePlayerUnits) match {
+//              case Nil =>
+//                s"No enemies in range or line of sight for ${currentShootUnit.avatar} at coordinates: $shootCoordinates"
+//              case targets =>
+//                // If there are potential targets, print them
+//                println("Potential targets for attack:")
+//                targets.foreach { target =>
+//                  println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
+//                  val updatedTarget = target.copy(avatar = " ", state = "dead")
+//                  board.updateActiveUnit(updatedTarget)
+//                }
+//
+//                val updatedShootUnit = currentShootUnit.copy(shootingPhaseCompleted = true)
+//                // Update the board with the modified targets
+//                val updatedBoard = board.updateActiveUnit(updatedShootUnit)
+//                sync.put(boardId)(updatedBoard)
+//                updatedBoard.printBoard()
+//                "Ranged attack performed successfully."
+//            }
+//          case None =>
+//            "No units available for ranged attack."
+//        }
+//      case None =>
+//        // If the board with the provided boardId is not found in the cache, return an error message
+//        "Board not found. Please provide a valid boardId."
+//    }
+//  }
+  def rangeAttackHttpIfInRange(shootCoordinates: Coordinates, boardId: String, avatar: String): String = {
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {
       case Some(board) =>
         // Get the active player's units from the board
         val activePlayerUnits = board.getActivePlayers
-        val currentShootUnitOption = activePlayerUnits.find(p => !p.shootingPhaseCompleted)
+        val currentShootUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.shootingPhaseCompleted)
         currentShootUnitOption match {
           case Some(currentShootUnit) =>
-            // Check ranged attack for the current shoot unit
-            checkRangedAttack(board.map, currentShootUnit, board.getPassivePlayers, activePlayerUnits) match {
-              case Nil =>
-                s"No enemies in range or line of sight for ${currentShootUnit.avatar} at coordinates: $shootCoordinates"
-              case targets =>
-                // If there are potential targets, print them
-                println("Potential targets for attack:")
-                targets.foreach { target =>
-                  println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
-                  val updatedTarget = target.copy(avatar = " ", state = "dead")
-                  board.updateActiveUnit(updatedTarget)
-                }
+            if (shootCoordinates == Coordinates(100, 100)) {
+              // Special case for coordinates (100, 100)
+              val updatedUnit = currentShootUnit.copy(shootingPhaseCompleted = true)
+              val updatedBoard = board.updateActiveUnit(updatedUnit)
+              sync.put(boardId)(updatedBoard)
+              updatedBoard.printBoard()
+              s"$avatar held its fire"
+            } else {
+              // Check ranged attack for the current shoot unit
+              checkRangedAttack(board.map, currentShootUnit, board.getPassivePlayers, activePlayerUnits) match {
+                case Nil =>
+                  s"No enemies in range or line of sight for ${currentShootUnit.avatar} at coordinates: $shootCoordinates"
+                case targets =>
+                  // If there are potential targets, print them
+                  println("Potential targets for attack:")
+                  targets.foreach { target =>
+                    println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
+                    val updatedTarget = target.copy(avatar = " ", state = "dead")
+                    board.updateActiveUnit(updatedTarget)
+                  }
 
-                val updatedShootUnit = currentShootUnit.copy(shootingPhaseCompleted = true)
-                // Update the board with the modified targets
-                val updatedBoard = board.updateActiveUnit(updatedShootUnit)
-                sync.put(boardId)(updatedBoard)
-                updatedBoard.printBoard()
-                "Ranged attack performed successfully."
+                  val updatedShootUnit = currentShootUnit.copy(shootingPhaseCompleted = true)
+                  // Update the board with the modified targets
+                  val updatedBoard = board.updateActiveUnit(updatedShootUnit)
+                  sync.put(boardId)(updatedBoard)
+                  updatedBoard.printBoard()
+                  "Ranged attack performed successfully."
+              }
             }
           case None =>
             "No units available for ranged attack."
@@ -314,6 +361,7 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
         "Board not found. Please provide a valid boardId."
     }
   }
+
 
   def checkRangedAttackHttp(board: Board): List[GameCharacter] = {
     val currentShootUnitOption = board.getActivePlayers.find(p => !p.shootingPhaseCompleted).get
@@ -394,6 +442,36 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
         "Invalid target coordinates. Please choose valid coordinates."
     }
   }
+
+  final def activeUnitsWithNoLineOfSight(activeUnits: List[GameCharacter], map: MapConfig, passiveUnits: List[GameCharacter]): List[GameCharacter] = {
+    activeUnits.foreach { unit =>
+      println(s"Processing unit: ${unit.avatar}") // Print the current unit being processed
+//      val activePlayerUnits = board.getActivePlayers
+//      val passivePlayerUnits = board.getPassivePlayers
+      // Get the current status of passive units, filtering out dead units
+      val currentPassiveUnits = passiveUnits.filter(_.state == ALIVE_STATE)
+
+      // Check if the current unit can perform a ranged attack
+      val allActiveUnits = activeUnits.filterNot(_ == unit) ++ currentPassiveUnits
+      checkRangedAttack(map, unit, currentPassiveUnits, allActiveUnits) match {
+        case Nil =>
+          // If there are no potential targets, update the shootingPhaseCompleted status of the active player
+          val updatedUnit = unit.copy(shootingPhaseCompleted = true)
+          println(s"No enemies in range or line of sight. Setting shootingPhaseCompleted for ${updatedUnit.avatar}")
+
+          // Print the unit before and after updating the shootingPhaseCompleted field
+          println("Before update:")
+          println(unit)
+          println("After update:")
+          println(updatedUnit)
+        case _ => // Do nothing if there are potential targets
+      }
+    }
+    activeUnits // Return the updated list of active units
+  }
+
+
+
 
 
 }
