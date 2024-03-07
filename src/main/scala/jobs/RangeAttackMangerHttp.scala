@@ -278,43 +278,43 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
   //        "Board not found. Please provide a valid boardId."
   //    }
   //  }
-//  def rangeAttackHttpIfInRange(shootCoordinates: Coordinates, boardId: String, avatar: String): String = {
-//    val cachedBoard: Option[Board] = sync.get(boardId)
-//    cachedBoard match {
-//      case Some(board) =>
-//        // Get the active player's units from the board
-//        val activePlayerUnits = board.getActivePlayers
-//        val currentShootUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.shootingPhaseCompleted)
-//        currentShootUnitOption match {
-//          case Some(currentShootUnit) =>
-//            // Check ranged attack for the current shoot unit
-//            checkRangedAttack(board.map, currentShootUnit, board.getPassivePlayers, activePlayerUnits) match {
-//              case Nil =>
-//                s"No enemies in range or line of sight for ${currentShootUnit.avatar} at coordinates: $shootCoordinates"
-//              case targets =>
-//                // If there are potential targets, print them
-//                println("Potential targets for attack:")
-//                targets.foreach { target =>
-//                  println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
-//                  val updatedTarget = target.copy(avatar = " ", state = "dead")
-//                  board.updateActiveUnit(updatedTarget)
-//                }
-//
-//                val updatedShootUnit = currentShootUnit.copy(shootingPhaseCompleted = true)
-//                // Update the board with the modified targets
-//                val updatedBoard = board.updateActiveUnit(updatedShootUnit)
-//                sync.put(boardId)(updatedBoard)
-//                updatedBoard.printBoard()
-//                "Ranged attack performed successfully."
-//            }
-//          case None =>
-//            "No units available for ranged attack."
-//        }
-//      case None =>
-//        // If the board with the provided boardId is not found in the cache, return an error message
-//        "Board not found. Please provide a valid boardId."
-//    }
-//  }
+  //  def rangeAttackHttpIfInRange(shootCoordinates: Coordinates, boardId: String, avatar: String): String = {
+  //    val cachedBoard: Option[Board] = sync.get(boardId)
+  //    cachedBoard match {
+  //      case Some(board) =>
+  //        // Get the active player's units from the board
+  //        val activePlayerUnits = board.getActivePlayers
+  //        val currentShootUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.shootingPhaseCompleted)
+  //        currentShootUnitOption match {
+  //          case Some(currentShootUnit) =>
+  //            // Check ranged attack for the current shoot unit
+  //            checkRangedAttack(board.map, currentShootUnit, board.getPassivePlayers, activePlayerUnits) match {
+  //              case Nil =>
+  //                s"No enemies in range or line of sight for ${currentShootUnit.avatar} at coordinates: $shootCoordinates"
+  //              case targets =>
+  //                // If there are potential targets, print them
+  //                println("Potential targets for attack:")
+  //                targets.foreach { target =>
+  //                  println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
+  //                  val updatedTarget = target.copy(avatar = " ", state = "dead")
+  //                  board.updateActiveUnit(updatedTarget)
+  //                }
+  //
+  //                val updatedShootUnit = currentShootUnit.copy(shootingPhaseCompleted = true)
+  //                // Update the board with the modified targets
+  //                val updatedBoard = board.updateActiveUnit(updatedShootUnit)
+  //                sync.put(boardId)(updatedBoard)
+  //                updatedBoard.printBoard()
+  //                "Ranged attack performed successfully."
+  //            }
+  //          case None =>
+  //            "No units available for ranged attack."
+  //        }
+  //      case None =>
+  //        // If the board with the provided boardId is not found in the cache, return an error message
+  //        "Board not found. Please provide a valid boardId."
+  //    }
+  //  }
   def rangeAttackHttpIfInRange(shootCoordinates: Coordinates, boardId: String, avatar: String): String = {
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {
@@ -411,7 +411,7 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
   //        activePlayer
   //    }
   //  }
-  def performRangedAttackHttp(mapConfig: MapConfig, activePlayer: GameCharacter, targetCoordinates: Coordinates, potentialTargets: List[GameCharacter], board: Board): String = {
+  def performRangedAttackHttp(mapConfig: MapConfig, activePlayer: GameCharacter, targetCoordinates: Coordinates, potentialTargets: List[GameCharacter], board: Board): (Board, String) = {
     val target = potentialTargets.find(_.currentPosition == targetCoordinates)
     target match {
       case Some(passivePlayer) =>
@@ -419,35 +419,32 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
         val randomChance = scala.util.Random.nextInt(100) + 1
         val hitMessage = s"${activePlayer.name} hits ${passivePlayer.name}!"
         val missMessage = s"${activePlayer.name} misses ${passivePlayer.name}!"
+        val updatedShooter = activePlayer.copy(shootingPhaseCompleted = true) // Mark shooter as having completed its shooting phase
         if (randomChance <= attackerBS) {
           val updatedPassivePlayer = passivePlayer.copy(state = DEAD_STATE, avatar = "")
-          val updatedBoard = board.updatePassiveUnit(updatedPassivePlayer)
+          val updatedBoard = board.updatePassiveUnit(updatedPassivePlayer).updateActiveUnit(updatedShooter)
 
-          println("Updated passive player after attack:")
-          println(updatedPassivePlayer)
-//          updatedBoard.printBoard()
-          updatedPassivePlayer
-          // Assuming the method below updates the board accordingly
-          // updateBoardWithHitOrMiss(activePlayer, passivePlayer)
-          s"$hitMessage\n${updatedBoard.printBoard()}"
+          println("Updated passive player and active player after attack:")
+          println(updatedPassivePlayer, updatedShooter)
+
+          (updatedBoard, s"$hitMessage\n${updatedBoard.printBoard()}")
         } else {
-//          // Print the board if miss message is generated
-//          println("Board after a miss:")
-//          board.printBoard()
-
-          s"$missMessage\n${board.printBoard()}"
-
+          val updatedBoard = board.updateActiveUnit(updatedShooter)
+          println("Updated shooter after a miss:")
+          println(updatedShooter)
+          (updatedBoard, s"$missMessage\n${updatedBoard.printBoard()}")
         }
       case None =>
-        "Invalid target coordinates. Please choose valid coordinates."
+        (board, "Invalid target coordinates. Please choose valid coordinates.")
     }
   }
+
 
   final def activeUnitsWithNoLineOfSight(activeUnits: List[GameCharacter], map: MapConfig, passiveUnits: List[GameCharacter]): List[GameCharacter] = {
     activeUnits.foreach { unit =>
       println(s"Processing unit: ${unit.avatar}") // Print the current unit being processed
-//      val activePlayerUnits = board.getActivePlayers
-//      val passivePlayerUnits = board.getPassivePlayers
+      //      val activePlayerUnits = board.getActivePlayers
+      //      val passivePlayerUnits = board.getPassivePlayers
       // Get the current status of passive units, filtering out dead units
       val currentPassiveUnits = passiveUnits.filter(_.state == ALIVE_STATE)
 
@@ -470,8 +467,35 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
     activeUnits // Return the updated list of active units
   }
 
+  def getActiveUnitsAndTargets(board: Board): Map[GameCharacter, List[GameCharacter]] = {
+    val mapConfig = board.map
+    val activeUnits = board.getActivePlayers
+    val passiveUnits = board.getPassivePlayers
+    val activeUnitsAndTargets = activeUnits.flatMap { unit =>
+      val potentialTargets = checkRangedAttack(mapConfig, unit, passiveUnits, activeUnits)
+      Map(unit -> potentialTargets)
+    }.toMap
+
+    // Print the generated map to the terminal
+    println("Active Units and Their Targets:")
+    activeUnitsAndTargets.foreach { case (unit, targets) =>
+      println(s"${unit.avatar} -> ${targets.map(_.avatar).mkString(", ")}")
+    }
+
+    activeUnitsAndTargets
+  }
 
 
+  def httpShoot(coordinates: Coordinates, board: Board, avatar: String): (Board, String) = {
+    val shooter = board.getActivePlayers.find(p => p.avatar == avatar).get
+    //TODO elegantly handle option and ensure unit has not already shot
+
+    val activeUnitsAndTargets = getActiveUnitsAndTargets(board)
+
+    val potentialTargets = activeUnitsAndTargets(shooter)
+    performRangedAttackHttp(board.map, shooter, coordinates, potentialTargets, board)
+
+  }
 
 
 }

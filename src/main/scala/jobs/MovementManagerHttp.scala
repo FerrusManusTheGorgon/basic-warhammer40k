@@ -72,95 +72,68 @@ class MovementManagerHttp(implicit cache: Cache[Board]) {
     }
     None
   }
-//  def httpMove(moveCoordinates: Coordinates, boardId: String, avatar: String): String = {
-//    // Retrieve the cached board using the provided boardId
-//    val cachedBoard: Option[Board] = sync.get(boardId)
-//    cachedBoard match {
-//      case Some(board) =>
-//        // Get the active player's units from the board
-//        val activePlayerUnits = if (board.isPlayer1Turn) board.player1 else board.player2
-//        val currentMoveUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.movePhaseCompleted)
-//        currentMoveUnitOption match {
-//          case Some(currentMoveUnit) =>
-//            if (isValidMove(board.map, moveCoordinates, currentMoveUnit, board.getPassivePlayers)) {
-//              // Update the unit's position
-//              val updatedUnit = currentMoveUnit.copy(currentPosition = moveCoordinates, movePhaseCompleted = true)
-//              val updatedBoard = board.updateActiveUnit(updatedUnit)
-//              println(s"${updatedBoard.player1.mkString(" ")}")
-//              sync.put(boardId)(updatedBoard)
-//              updatedBoard.printBoard()
-//            } else {
-//              s"Invalid move for $avatar at coordinates: $moveCoordinates"
-//            }
-//          case None =>
-//            s"No valid unit with avatar $avatar found for moving."
-//        }
-//      case None =>
-//        // If the board with the provided boardId is not found in the cache, return an error message
-//        "Board not found. Please provide a valid boardId."
-//    }
-//  }
-def httpMove(moveCoordinates: Coordinates, boardId: String, avatar: String): String = {
-  // Retrieve the cached board using the provided boardId
-  val cachedBoard: Option[Board] = sync.get(boardId)
-  cachedBoard match {
-    case Some(board) =>
-      // Get the active player's units from the board
-      val activePlayerUnits = if (board.isPlayer1Turn) board.player1 else board.player2
-      val currentMoveUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.movePhaseCompleted)
-      currentMoveUnitOption match {
-        case Some(currentMoveUnit) =>
-          if (moveCoordinates == Coordinates(100, 100)) {
-            // Special case for coordinates (100, 100)
-            val updatedUnit = currentMoveUnit.copy(movePhaseCompleted = true)
-            val updatedBoard = board.updateActiveUnit(updatedUnit)
-            sync.put(boardId)(updatedBoard)
-            updatedBoard.printBoard()
-            s"$avatar held its ground"
-          } else if (isValidMove(board.map, moveCoordinates, currentMoveUnit, board.getPassivePlayers)) {
-            // Update the unit's position
-            val updatedUnit = currentMoveUnit.copy(currentPosition = moveCoordinates, movePhaseCompleted = true)
-            val updatedBoard = board.updateActiveUnit(updatedUnit)
-            sync.put(boardId)(updatedBoard)
-            updatedBoard.printBoard()
-            val boardString = updatedBoard.printBoard()
-            s"$boardString"
-          } else {
-            s"Invalid move for $avatar at coordinates: $moveCoordinates"
-          }
-        case None =>
-          s"No valid unit with avatar $avatar found for moving."
-      }
-    case None =>
-      // If the board with the provided boardId is not found in the cache, return an error message
-      "Board not found. Please provide a valid boardId."
+
+  //  def httpMove(moveCoordinates: Coordinates, boardId: String, avatar: String): String = {
+  //    // Retrieve the cached board using the provided boardId
+  //    val cachedBoard: Option[Board] = sync.get(boardId)
+  //    cachedBoard match {
+  //      case Some(board) =>
+  //        // Get the active player's units from the board
+  //        val activePlayerUnits = if (board.isPlayer1Turn) board.player1 else board.player2
+  //        val currentMoveUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.movePhaseCompleted)
+  //        currentMoveUnitOption match {
+  //          case Some(currentMoveUnit) =>
+  //            if (isValidMove(board.map, moveCoordinates, currentMoveUnit, board.getPassivePlayers)) {
+  //              // Update the unit's position
+  //              val updatedUnit = currentMoveUnit.copy(currentPosition = moveCoordinates, movePhaseCompleted = true)
+  //              val updatedBoard = board.updateActiveUnit(updatedUnit)
+  //              println(s"${updatedBoard.player1.mkString(" ")}")
+  //              sync.put(boardId)(updatedBoard)
+  //              updatedBoard.printBoard()
+  //            } else {
+  //              s"Invalid move for $avatar at coordinates: $moveCoordinates"
+  //            }
+  //          case None =>
+  //            s"No valid unit with avatar $avatar found for moving."
+  //        }
+  //      case None =>
+  //        // If the board with the provided boardId is not found in the cache, return an error message
+  //        "Board not found. Please provide a valid boardId."
+  //    }
+  //  }
+  def httpMove(moveCoordinates: Coordinates, board: Board, avatar: String): (Board, String) = {
+
+    // Get the active player's units from the board
+    val activePlayerUnits = if (board.isPlayer1Turn) board.player1 else board.player2
+    val currentMoveUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.movePhaseCompleted)
+    currentMoveUnitOption match {
+      case Some(currentUnit) =>
+        if (moveCoordinates == currentUnit.currentPosition) {
+          // Special case for coordinates (100, 100)
+          val updatedUnit = currentUnit.copy(movePhaseCompleted = true)
+          val updatedBoard = board.updateActiveUnit(updatedUnit)
+          val boardString = updatedBoard.printBoard()
+          (updatedBoard, s"$boardString\n$avatar held its ground")
+        } else if (isValidMove(board.map, moveCoordinates, currentUnit, board.getPassivePlayers)) {
+          // Update the unit's position
+          val updatedUnit = currentUnit.copy(currentPosition = moveCoordinates, movePhaseCompleted = true)
+          val updatedBoard = board.updateActiveUnit(updatedUnit)
+          val boardString = updatedBoard.printBoard()
+          (updatedBoard, s"$boardString\n$updatedUnit") // Print the updated GameCharacter
+        } else {
+          (board, s"Invalid move for $avatar at coordinates: $moveCoordinates")
+        }
+      case None =>
+        (board, s"No valid unit with avatar $avatar found for moving.")
+    }
+
   }
-}
 
 
-  //  def httpMove(moveCoordinates: Coordinates, boardId: String): String = {
-//    // Retrieve the cached board using the provided boardId
-//    val cachedBoard: Option[Board] = sync.get(boardId)
-//    cachedBoard match {
-//      case Some(board) =>
-//        // Get the active player's units from the board
-//        val activePlayerUnits = if (board.isPlayer1Turn) board.player1 else board.player2
-//        val currentMoveUnit = activePlayerUnits.filter(p => p.movePhaseCompleted == false).head
-//        if (isValidMove(board.map, moveCoordinates, currentMoveUnit, board.getPassivePlayers)) {
-//          // Update the unit's position
-//          val updatedUnit = currentMoveUnit.copy(currentPosition = moveCoordinates, movePhaseCompleted = true)
-//          val updatedBoard = board.updateActiveUnit(updatedUnit)
-//          println(s"${updatedBoard.player1.mkString(" ")}")
-//          sync.put(boardId)(updatedBoard)
-//          updatedBoard.printBoard()
-//        } else {
-//          s"Invalid move for ${currentMoveUnit.avatar} at coordinates: $moveCoordinates"
-//        }
-//      case None =>
-//        // If the board with the provided boardId is not found in the cache, return an error message
-//        "Board not found. Please provide a valid boardId."
-//    }
-//  }
+
+
+
+
 
 
 
