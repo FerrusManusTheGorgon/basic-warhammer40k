@@ -97,7 +97,71 @@ case class Board(
 
     boardString.toString()
   }
+
+  // Function to update the phase of a board
+  def updatePhase(isMovePhase: Boolean, isShootingPhase: Boolean, isCloseCombatPhase: Boolean): Board =
+    this.copy(
+      isMovePhase = isMovePhase,
+      isShootingPhase = isShootingPhase,
+      isCloseCombatPhase = isCloseCombatPhase
+    )
+
+
+  // Method to check if all active units have completed their move phase
+  private def allUnitsMoved(activeUnits: List[GameCharacter]): Boolean = {
+    activeUnits.forall(_.movePhaseCompleted)
+  }
+
+  // Method to check if all active units have completed their shooting phase
+  private def allUnitsShot(activeUnits: List[GameCharacter]): Boolean = {
+    activeUnits.forall(_.shootingPhaseCompleted)
+  }
+
+  // Method to check if all active units have completed their close combat phase
+  private def allUnitsAssaulted(activeUnits: List[GameCharacter]): Boolean = {
+    activeUnits.forall(_.closeCombatPhaseCompleted)
+  }
+
+  // Method to update the phase based on the completion statuses of active units
+  def phaseManager: Board = {
+    val activeUnits = if (isPlayer1Turn) player1 else player2
+    val newIsMovePhase = !allUnitsMoved(activeUnits) && !isShootingPhase && !isCloseCombatPhase
+    val newIsShootingPhase = allUnitsMoved(activeUnits) && !allUnitsShot(activeUnits) && !isCloseCombatPhase
+    val newIsCloseCombatPhase = allUnitsShot(activeUnits) && !allUnitsAssaulted(activeUnits) && !isMovePhase
+
+    // Update the phase flags first
+    val updatedBoardWithPhases = this.copy(
+      isMovePhase = newIsMovePhase,
+      isShootingPhase = newIsShootingPhase,
+      isCloseCombatPhase = newIsCloseCombatPhase
+    )
+
+//    // Reset phaseCompleted flags based on the phase transition
+//    val updatedActiveUnits = activeUnits.map { character =>
+//      character.copy(
+//        movePhaseCompleted = newIsMovePhase,
+//        shootingPhaseCompleted = newIsShootingPhase,
+//        closeCombatPhaseCompleted = newIsCloseCombatPhase
+//      )
+//    }
+
+    // Update the board with updated active units
+    updatedBoardWithPhases.copy(
+//      player1 = if (isPlayer1Turn) updatedActiveUnits else player1,
+//      player2 = if (!isPlayer1Turn) updatedActiveUnits else player2
+    )
+  }
+
+
+  //  def getCurrentPhase(board: Board): String = {
+//    if (board.isMovePhase) "Move"
+//    else if (board.isShootingPhase) "Shoot"
+//    else if (board.isCloseCombatPhase) "Assault"
+//    else "Unknown"
+//  }
+
 }
+
 
 
 

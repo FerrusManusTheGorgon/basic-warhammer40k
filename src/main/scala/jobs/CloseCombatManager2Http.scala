@@ -59,9 +59,9 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
     }
   }
 
-//  def meleeMessage(prefix: String, passivePlayer: GameUnit): Unit = {
-//    println(prefix + s"${passivePlayer.character.avatar} at coordinates (${passivePlayer.coordinates.x}, ${passivePlayer.coordinates.y})!")
-//  }
+  //  def meleeMessage(prefix: String, passivePlayer: GameUnit): Unit = {
+  //    println(prefix + s"${passivePlayer.character.avatar} at coordinates (${passivePlayer.coordinates.x}, ${passivePlayer.coordinates.y})!")
+  //  }
 
   def checkCloseCombatAttack(mapConfig: MapConfig, activePlayer: GameCharacter, passivePlayers: List[GameCharacter]): List[GameCharacter] = {
     println("Checking close combat attack...")
@@ -112,7 +112,7 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
             val remainingPassiveUnits = if (potentialCasualty.state == ALIVE_STATE) {
               currentPassiveUnits
             } else {
-              currentPassiveUnits.filterNot( p => p.characterId == potentialCasualty.characterId)
+              currentPassiveUnits.filterNot(p => p.characterId == potentialCasualty.characterId)
             }
 
             // Print the current status of passive units after filtering
@@ -132,64 +132,63 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
   }
 
 
-
   def performCloseCombatAttackHttpIfInRange(assaultCoordinates: Coordinates, boardId: String, avatar: String): String = {
 
     val cachedBoard: Option[Board] = sync.get(boardId)
-  cachedBoard match {
-    case Some(board) =>
-      // Get the active player's units from the board
-      val activePlayerUnits = board.getActivePlayers
-      val currentAssaultUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.closeCombatPhaseCompleted)
-      currentAssaultUnitOption match {
-        case Some(currentAssaultUnit) =>
-          if (assaultCoordinates == Coordinates(100, 100)) {
-            // Special case for coordinates (100, 100)
-            val updatedUnit = currentAssaultUnit.copy(closeCombatPhaseCompleted = true)
-            val updatedBoard = board.updateActiveUnit(updatedUnit)
-            sync.put(boardId)(updatedBoard)
-            updatedBoard.printBoard()
-            s"$avatar held its attack"
-          } else {
-            // Check ranged attack for the current shoot unit
-            checkCloseCombatAttack(board.map, currentAssaultUnit, board.getPassivePlayers) match {
-              case Nil =>
-                s"No enemies in assault range  for ${currentAssaultUnit.avatar} at coordinates: $assaultCoordinates"
-              case targets =>
-                // If there are potential targets, print them
-                println("Potential targets for assault:")
-                targets.foreach { target =>
-                  println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
-                  val updatedTarget = target.copy(avatar = " ", state = "dead")
-                  board.updateActiveUnit(updatedTarget)
-                }
+    cachedBoard match {
+      case Some(board) =>
+        // Get the active player's units from the board
+        val activePlayerUnits = board.getActivePlayers
+        val currentAssaultUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.closeCombatPhaseCompleted)
+        currentAssaultUnitOption match {
+          case Some(currentAssaultUnit) =>
+            if (assaultCoordinates == Coordinates(100, 100)) {
+              // Special case for coordinates (100, 100)
+              val updatedUnit = currentAssaultUnit.copy(closeCombatPhaseCompleted = true)
+              val updatedBoard = board.updateActiveUnit(updatedUnit)
+              sync.put(boardId)(updatedBoard)
+              updatedBoard.printBoard()
+              s"$avatar held its attack"
+            } else {
+              // Check ranged attack for the current shoot unit
+              checkCloseCombatAttack(board.map, currentAssaultUnit, board.getPassivePlayers) match {
+                case Nil =>
+                  s"No enemies in assault range  for ${currentAssaultUnit.avatar} at coordinates: $assaultCoordinates"
+                case targets =>
+                  // If there are potential targets, print them
+                  println("Potential targets for assault:")
+                  targets.foreach { target =>
+                    println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
+                    val updatedTarget = target.copy(avatar = " ", state = "dead")
+                    board.updateActiveUnit(updatedTarget)
+                  }
 
-                val updatedAssaultUnit = currentAssaultUnit.copy(closeCombatPhaseCompleted = true)
-                // Update the board with the modified targets
-                val updatedBoard = board.updateActiveUnit(updatedAssaultUnit)
-                sync.put(boardId)(updatedBoard)
-                updatedBoard.printBoard()
-                "Close Combat attack performed successfully."
+                  val updatedAssaultUnit = currentAssaultUnit.copy(closeCombatPhaseCompleted = true)
+                  // Update the board with the modified targets
+                  val updatedBoard = board.updateActiveUnit(updatedAssaultUnit)
+                  sync.put(boardId)(updatedBoard)
+                  updatedBoard.printBoard()
+                  "Close Combat attack performed successfully."
+              }
             }
-          }
-        case None =>
-          "No units available for Close Combat attack."
-      }
-    case None =>
-      // If the board with the provided boardId is not found in the cache, return an error message
-      "Board not found. Please provide a valid boardId."
+          case None =>
+            "No units available for Close Combat attack."
+        }
+      case None =>
+        // If the board with the provided boardId is not found in the cache, return an error message
+        "Board not found. Please provide a valid boardId."
+    }
   }
-}
 
   def checkCloseCombatAttackHttp(board: Board): List[GameCharacter] = {
-    val currentAssaultUnitOption = board.getActivePlayers.find(p => !p.shootingPhaseCompleted).get
+    val currentAssaultUnitOption = board.getActivePlayers.find(p => !p.closeCombatPhaseCompleted).get
     checkCloseCombatAttack(board.map, currentAssaultUnitOption, board.getPassivePlayers)
-    //
-    //
+
 
   }
 
-  def performCloseCombatAttackHttp(mapConfig: MapConfig, activePlayer: GameCharacter, targetCoordinates: Coordinates, potentialTargets: List[GameCharacter], board: Board): String = {
+
+  def performCloseCombatAttackHttp(mapConfig: MapConfig, activePlayer: GameCharacter, targetCoordinates: Coordinates, potentialTargets: List[GameCharacter], board: Board): (Board, String) = {
     val target = potentialTargets.find(_.currentPosition == targetCoordinates)
     target match {
       case Some(passivePlayer) =>
@@ -197,27 +196,22 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
         val randomChance = scala.util.Random.nextInt(100) + 1
         val hitMessage = s"${activePlayer.name} hits ${passivePlayer.name}!"
         val missMessage = s"${activePlayer.name} misses ${passivePlayer.name}!"
+        val updatedAssaulter = activePlayer.copy(closeCombatPhaseCompleted = true) // Mark asaulter as having completed its shooting phase
         if (randomChance <= attackerWS) {
           val updatedPassivePlayer = passivePlayer.copy(state = DEAD_STATE, avatar = "")
-          val updatedBoard = board.updatePassiveUnit(updatedPassivePlayer)
+          val updatedBoard = board.updatePassiveUnit(updatedPassivePlayer).updateActiveUnit(updatedAssaulter)
 
-          println("Updated passive player after attack:")
-          println(updatedPassivePlayer)
-          //          updatedBoard.printBoard()
-          updatedPassivePlayer
-          // Assuming the method below updates the board accordingly
-          // updateBoardWithHitOrMiss(activePlayer, passivePlayer)
-          s"$hitMessage\n${updatedBoard.printBoard()}"
+          println("Updated passive player and active player after attack:")
+          println(updatedPassivePlayer, updatedAssaulter)
+          (updatedBoard, s"$hitMessage\n${updatedBoard.printBoard()}")
         } else {
-          //          // Print the board if miss message is generated
-          //          println("Board after a miss:")
-          //          board.printBoard()
-
-          s"$missMessage\n${board.printBoard()}"
-
+          val updatedBoard = board.updateActiveUnit(updatedAssaulter)
+          println("Updated shooter after a miss:")
+          println(updatedAssaulter)
+          (updatedBoard, s"$missMessage\n${updatedBoard.printBoard()}")
         }
       case None =>
-        "Invalid target coordinates. Please choose valid coordinates."
+        (board, "Invalid target coordinates. Please choose valid coordinates.")
     }
   }
 
@@ -249,7 +243,28 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
     }
   }
 
-}
+    def getActiveUnitsAndAssaultTargets(board: Board): Map[GameCharacter, List[GameCharacter]] = {
+      val mapConfig = board.map
+      val activeUnits = board.getActivePlayers
+      val passiveUnits = board.getPassivePlayers
+      val activeUnitsAndTargets = activeUnits.flatMap { unit =>
+        val potentialTargets = checkCloseCombatAttack(mapConfig, unit, passiveUnits)
+        Map(unit -> potentialTargets)
+      }.toMap
+
+      // Print the generated map to the terminal
+      println("Active Units and Their AssaultTargets:")
+      activeUnitsAndTargets.foreach { case (unit, targets) =>
+        println(s"${unit.avatar} -> ${targets.map(_.avatar).mkString(", ")}")
+      }
+
+      activeUnitsAndTargets
+    }
+
+  }
+
+
+
 
 
 

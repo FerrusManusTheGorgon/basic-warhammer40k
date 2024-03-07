@@ -5,7 +5,7 @@ object Characters {
 
   val SpaceMarine = GameCharacter(
     characterId = "a617321a-7ad6-11ee-afff-325096b39f47",
-    ballisticSkill = 10,
+    ballisticSkill = 90,
     range = 15,
     weaponSkill = 75,
     movement = 6,
