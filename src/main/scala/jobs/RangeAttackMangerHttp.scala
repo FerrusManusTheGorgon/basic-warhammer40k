@@ -411,33 +411,44 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
   //        activePlayer
   //    }
   //  }
-  def performRangedAttackHttp(mapConfig: MapConfig, activePlayer: GameCharacter, targetCoordinates: Coordinates, potentialTargets: List[GameCharacter], board: Board): (Board, String) = {
-    val target = potentialTargets.find(_.currentPosition == targetCoordinates)
-    target match {
-      case Some(passivePlayer) =>
-        val attackerBS = activePlayer.ballisticSkill
-        val randomChance = scala.util.Random.nextInt(100) + 1
-        val hitMessage = s"${activePlayer.name} hits ${passivePlayer.name}!"
-        val missMessage = s"${activePlayer.name} misses ${passivePlayer.name}!"
-        val updatedShooter = activePlayer.copy(shootingPhaseCompleted = true) // Mark shooter as having completed its shooting phase
-        if (randomChance <= attackerBS) {
-          val updatedPassivePlayer = passivePlayer.copy(state = DEAD_STATE, avatar = "")
-          val updatedBoard = board.updatePassiveUnit(updatedPassivePlayer).updateActiveUnit(updatedShooter)
 
-          println("Updated passive player and active player after attack:")
-          println(updatedPassivePlayer, updatedShooter)
+    def performRangedAttackHttp(mapConfig: MapConfig, activePlayer: GameCharacter, targetCoordinates: Coordinates, potentialTargets: List[GameCharacter], board: Board): (Board, String) = {
+      val target = potentialTargets.find(_.currentPosition == targetCoordinates)
+      target match {
+        case Some(passivePlayer) =>
+          val attackerBS = activePlayer.ballisticSkill
+          val randomChance = scala.util.Random.nextInt(100) + 1
+          val hitMessage = s"${activePlayer.name} hits ${passivePlayer.name}!"
+          val missMessage = s"${activePlayer.name} misses ${passivePlayer.name}!"
+          val updatedShooter = activePlayer.copy(shootingPhaseCompleted = true) // Mark shooter as having completed its shooting phase
+          if (randomChance <= attackerBS) {
+            val updatedPassivePlayer = passivePlayer.copy(state = DEAD_STATE, avatar = "")
+            val updatedBoard = board.updatePassiveUnit(updatedPassivePlayer).updateActiveUnit(updatedShooter)
 
-          (updatedBoard, s"$hitMessage\n${updatedBoard.printBoard()}")
-        } else {
-          val updatedBoard = board.updateActiveUnit(updatedShooter)
-          println("Updated shooter after a miss:")
-          println(updatedShooter)
-          (updatedBoard, s"$missMessage\n${updatedBoard.printBoard()}")
-        }
-      case None =>
-        (board, "Invalid target coordinates. Please choose valid coordinates.")
+            println("Updated passive player and active player after attack:")
+            println(updatedPassivePlayer, updatedShooter)
+
+            // Call checkVictory after ranged attack
+            val victoryMessage = new CheckVictoryConditions().checkVictory(updatedBoard.getActivePlayers, updatedBoard.getPassivePlayers)
+
+            (updatedBoard, s"$hitMessage\n${updatedBoard.printBoard()}\n$victoryMessage")
+          } else {
+            val updatedBoard = board.updateActiveUnit(updatedShooter)
+            println("Updated shooter after a miss:")
+            println(updatedShooter)
+
+            // Call checkVictory after ranged attack
+            val victoryMessage = new CheckVictoryConditions().checkVictory(updatedBoard.getActivePlayers, updatedBoard.getPassivePlayers)
+
+            (updatedBoard, s"$missMessage\n${updatedBoard.printBoard()}\n$victoryMessage")
+          }
+        case None =>
+          // Call checkVictory after ranged attack
+          val victoryMessage = new CheckVictoryConditions().checkVictory(board.getActivePlayers, board.getPassivePlayers)
+          (board, s"Invalid target coordinates. Please choose valid coordinates.\n$victoryMessage")
+      }
     }
-  }
+
 
 
   final def activeUnitsWithNoLineOfSight(activeUnits: List[GameCharacter], map: MapConfig, passiveUnits: List[GameCharacter]): List[GameCharacter] = {
@@ -471,6 +482,11 @@ class RangeAttackMangerHttp(implicit cache: Cache[Board]) {
     val mapConfig = board.map
     val activeUnits = board.getActivePlayers
     val passiveUnits = board.getPassivePlayers
+
+    // Print active units before processing
+    println("Active Units:")
+    activeUnits.foreach(unit => println(unit))
+
     val activeUnitsAndTargets = activeUnits.flatMap { unit =>
       val potentialTargets = checkRangedAttack(mapConfig, unit, passiveUnits, activeUnits)
       Map(unit -> potentialTargets)
