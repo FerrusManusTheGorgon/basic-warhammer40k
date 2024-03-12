@@ -1,5 +1,6 @@
 package models
 
+import models.UnitState.{ALIVE_STATE, DEAD_STATE}
 import models.{Coordinates, MapConfig}
 import models.{Characters, GameCharacter}
 
@@ -210,6 +211,14 @@ case class Board(
     }
   }
 
+  def getPassiveAlivePlayers: List[GameCharacter] = {
+    this.getPassivePlayers.filter(_.state == ALIVE_STATE)
+  }
+
+  def getPassiveDeadPlayers: List[GameCharacter] = {
+    this.getPassivePlayers.filter(_.state == DEAD_STATE)
+  }
+
   def getActivePlayers: List[GameCharacter] = {
     if (this.isPlayer1Turn) {
       this.player1
@@ -217,6 +226,27 @@ case class Board(
       this.player2
     }
   }
+
+  def getActiveAlivePlayers: List[GameCharacter] = {
+    this.getActivePlayers.filter(_.state == ALIVE_STATE)
+  }
+
+  def getActiveDeadPlayers: List[GameCharacter] = {
+    this.getActivePlayers.filter(_.state == DEAD_STATE)
+  }
+
+  def getAllPlayers: List[GameCharacter] = {
+    getActivePlayers ++ getPassivePlayers
+  }
+
+  def getAllAlivePlayers: List[GameCharacter] = {
+    this.getAllPlayers.filter(_.state == ALIVE_STATE)
+  }
+
+  def getAllDeadPlayers: List[GameCharacter] = {
+    this.getAllPlayers.filter(_.state == DEAD_STATE)
+  }
+
 
   //  def print: String = {
   //
@@ -230,13 +260,13 @@ case class Board(
     // Place player 1 characters on the board
     player1.foreach { character =>
       val Coordinates(x, y) = character.currentPosition
-      boardState(y - 1)(x - 1) = character.avatar
+      boardState(y - 1)(x - 1) = if (character.state == ALIVE_STATE) character.avatar else "x"
     }
 
     // Place player 2 characters on the board
     player2.foreach { character =>
       val Coordinates(x, y) = character.currentPosition
-      boardState(y - 1)(x - 1) = character.avatar
+      boardState(y - 1)(x - 1) = if (character.state == ALIVE_STATE) character.avatar else "x"
     }
     // Place blockers on the board
     map.blocker.foreach { coord =>
@@ -270,18 +300,17 @@ case class Board(
 
   // Method to check if all active units have completed their move phase
   private def allUnitsMoved(activeUnits: List[GameCharacter]): Boolean = {
-    activeUnits.forall(_.movePhaseCompleted)
+    activeUnits.filter(_.state == ALIVE_STATE).forall(_.movePhaseCompleted)
   }
 
-  // Method to check if all active units have completed their shooting phase
   private def allUnitsShot(activeUnits: List[GameCharacter]): Boolean = {
-    activeUnits.forall(_.shootingPhaseCompleted)
+    activeUnits.filter(_.state == ALIVE_STATE).forall(_.shootingPhaseCompleted)
   }
 
-  // Method to check if all active units have completed their close combat phase
   private def allUnitsAssaulted(activeUnits: List[GameCharacter]): Boolean = {
-    activeUnits.forall(_.closeCombatPhaseCompleted)
+    activeUnits.filter(_.state == ALIVE_STATE).forall(_.closeCombatPhaseCompleted)
   }
+
 
   // Method to update the phase based on the completion statuses of active units
   def phaseManager: Board = {
@@ -295,41 +324,41 @@ case class Board(
       case (true, false, false) => handleEndOfMovementPhase
       case (false, true, false) => handleEndOfShootingPhase
       case (false, false, true) => handleEndOfCloseCombatPhase
-      case(false, false, false) => this
+      case (false, false, false) => this
     }
 
 
     // Update the phase flags first
-//    val updatedBoardWithPhases = this.copy(
-//      isMovePhase = newIsMovePhase,
-//      isShootingPhase = newIsShootingPhase,
-//      isCloseCombatPhase = newIsCloseCombatPhase
-//    )
+    //    val updatedBoardWithPhases = this.copy(
+    //      isMovePhase = newIsMovePhase,
+    //      isShootingPhase = newIsShootingPhase,
+    //      isCloseCombatPhase = newIsCloseCombatPhase
+    //    )
 
     // Transition from close combat phase back to move phase and switch player turns
-//    val updatedBoardWithTurn = if (newIsMovePhase) {
-//      updatedBoardWithPhases.copy(
-//        isPlayer1Turn = !isPlayer1Turn,
-//        turnNumber = turnNumber + 1
-//      )
-//    } else {
-//      updatedBoardWithPhases
-//    }
+    //    val updatedBoardWithTurn = if (newIsMovePhase) {
+    //      updatedBoardWithPhases.copy(
+    //        isPlayer1Turn = !isPlayer1Turn,
+    //        turnNumber = turnNumber + 1
+    //      )
+    //    } else {
+    //      updatedBoardWithPhases
+    //    }
 
     // Reset phaseCompleted flags based on the phase transition
-//    val updatedActiveUnits = activeUnits.map { character =>
-//      character.copy(
-//        movePhaseCompleted = newIsShootingPhase,
-//        shootingPhaseCompleted = newIsCloseCombatPhase,
-//        closeCombatPhaseCompleted = newIsMovePhase
-//      )
-//    }
+    //    val updatedActiveUnits = activeUnits.map { character =>
+    //      character.copy(
+    //        movePhaseCompleted = newIsShootingPhase,
+    //        shootingPhaseCompleted = newIsCloseCombatPhase,
+    //        closeCombatPhaseCompleted = newIsMovePhase
+    //      )
+    //    }
 
     // Update the board with updated active units
-//    updatedBoardWithTurn.copy(
-//      player1 = if (isPlayer1Turn) updatedActiveUnits else player1,
-//      player2 = if (!isPlayer1Turn) updatedActiveUnits else player2
-//    )
+    //    updatedBoardWithTurn.copy(
+    //      player1 = if (isPlayer1Turn) updatedActiveUnits else player1,
+    //      player2 = if (!isPlayer1Turn) updatedActiveUnits else player2
+    //    )
   }
 
   def handleEndOfMovementPhase: Board = {

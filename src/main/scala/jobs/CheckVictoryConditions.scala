@@ -12,19 +12,24 @@ class CheckVictoryConditions {
       println("The Battle Rages On")
       "The Battle Rages On"
     } else {
-      activeUnits.headOption.map { unit =>
-        unit.avatar match {
-          case "S" =>
-            println("The Xenos have been Purged. A Glorious Victory for the Imperium")
-            "The Xenos have been Purged. A Glorious Victory for the Imperium"
-          case "O" | "9" | "8" | "7" =>
-            println("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
-            "The Green Tide is Victorious. WAAAAAGGGGH!!!!"
-        }
-      }.getOrElse("No units left on the battlefield.")
+      activeUnits.headOption match {
+        case Some(unit) =>
+          unit.avatar match {
+            case "S" =>
+              println("The Xenos have been Purged. A Glorious Victory for the Imperium")
+              "The Xenos have been Purged. A Glorious Victory for the Imperium"
+            case "O" | "9" | "8" | "7" =>
+              println("The Green Tide is Victorious. WAAAAAGGGGH!!!!")
+              "The Green Tide is Victorious. WAAAAAGGGGH!!!!"
+          }
+        case None =>
+          println("No units left on the battlefield.")
+          "No units left on the battlefield."
+      }
     }
   }
 
 }
+
 
 

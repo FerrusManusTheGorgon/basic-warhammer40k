@@ -65,6 +65,7 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
 
   def checkCloseCombatAttack(mapConfig: MapConfig, activePlayer: GameCharacter, passivePlayers: List[GameCharacter]): List[GameCharacter] = {
     println("Checking close combat attack...")
+    println(passivePlayers, activePlayer)
     val potentialMeleeTargets = passivePlayers.filter(p => activePlayer.currentPosition.adjacent.contains(p.currentPosition))
 
     // Print targets in sight
@@ -181,10 +182,10 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
   }
 
   def checkCloseCombatAttackHttp(board: Board): List[GameCharacter] = {
-    val currentAssaultUnitOption = board.getActivePlayers.find(p => !p.closeCombatPhaseCompleted).get
+    val currentAssaultUnitOption = board.getActivePlayers.find(p => !p.closeCombatPhaseCompleted && p.state == "alive").get
     checkCloseCombatAttack(board.map, currentAssaultUnitOption, board.getPassivePlayers)
-
-
+    //
+    //
   }
 
 
@@ -243,25 +244,29 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
     }
   }
 
-    def getActiveUnitsAndAssaultTargets(board: Board): Map[GameCharacter, List[GameCharacter]] = {
-      val mapConfig = board.map
-      val activeUnits = board.getActivePlayers
-      val passiveUnits = board.getPassivePlayers
-      val activeUnitsAndTargets = activeUnits.flatMap { unit =>
-        val potentialTargets = checkCloseCombatAttack(mapConfig, unit, passiveUnits)
-        Map(unit -> potentialTargets)
-      }.toMap
+  def getActiveUnitsAndAssaultTargets(board: Board): Map[GameCharacter, List[GameCharacter]] = {
+    val mapConfig = board.map
+    val activeUnits = board.getActivePlayers
+    val passiveUnits = board.getPassivePlayers
+    val activeUnitsAndTargets = activeUnits.flatMap { unit =>
+      val potentialTargets = checkCloseCombatAttack(mapConfig, unit, passiveUnits)
+      Map(unit -> potentialTargets)
+    }.toMap
 
-      // Print the generated map to the terminal
-      println("Active Units and Their AssaultTargets:")
-      activeUnitsAndTargets.foreach { case (unit, targets) =>
-        println(s"${unit.avatar} -> ${targets.map(_.avatar).mkString(", ")}")
-      }
-
-      activeUnitsAndTargets
+    // Print the generated map to the terminal
+    println("Active Units and Their AssaultTargets:")
+    val filteredActiveUnitsAndTargets = activeUnitsAndTargets.filter { case (unit, _) =>
+      unit.state == "alive"
+    }
+    filteredActiveUnitsAndTargets.foreach { case (unit, targets) =>
+      println(s"${unit.avatar} -> ${targets.map(_.avatar).mkString(", ")}")
     }
 
+    filteredActiveUnitsAndTargets
+
+
   }
+}
 
 
 

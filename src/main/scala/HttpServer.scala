@@ -282,7 +282,7 @@ object MinimalApplication extends cask.MainRoutes {
           }
 
           // Update the board with the units that have completed their shooting phase
-          val updatedBoardWithCompletedUnits = updatedUnits.foldLeft(board) { (currentBoard, updatedUnit) =>
+          val updatedBoardWithCompletedUnits = (board.getActiveDeadPlayers ++ updatedUnits).foldLeft(board) { (currentBoard, updatedUnit) =>
             currentBoard.updateActiveUnit(updatedUnit)
           }
 
@@ -323,15 +323,13 @@ object MinimalApplication extends cask.MainRoutes {
               // If it's not the shoot phase, return a message indicating that shoot actions are not allowed
               s"Shoot actions are not allowed in the current phase. Current phase: ${getCurrentPhase(board)}"
             } else {
-              val targetedCharacters = rangeAttackManager.checkRangedAttackHttp(board)
-              val (updatedBoard, attackResult) = rangeAttackManager.performRangedAttackHttp(board.map, board.getActivePlayers.head, coordinates, targetedCharacters, board)
+              val (updatedBoard, attackResult) = rangeAttackManager.performRangedAttackHttp(avatar, coordinates, board)
               // Perform phase transition
               val updatedBoardWithPhase = updatedBoard.phaseManager
 
               sync.put(boardId)(updatedBoardWithPhase) // Update the cached board
               // Print the updated board to local host terminal
               println("Updated board:")
-              updatedBoard.printBoard()
               val victoryMessage = victoryChecker.checkVictory(updatedBoard.getActivePlayers, updatedBoard.getPassivePlayers)
 
               // Print both attack result, victory message (if available), and phase transition message
@@ -624,5 +622,13 @@ object MinimalApplication extends cask.MainRoutes {
 
 // curl http://localhost:8080/start/
 // curl -X POST http://localhost:8080/start/ -d "y"
+// curl -X POST http://localhost:8080/move -d "6 6 S"
+//curl http://localhost:8080/shoot/
 // curl -X POST http://localhost:8080/move
 // curl -X POST -H "Content-Type: application/json" -d '{"boardId":"123", "moveCoordinates":"3 4"}' http://localhost:8080/move
+// curl http://localhost:8080/shoot/ -d "6 8 S"
+// curl -X POST http://localhost:8080/move -d "1 6 7"
+// curl -X POST http://localhost:8080/move -d "6 8 9"
+//  curl -X POST http://localhost:8080/move -d "9 6 8"
+
+

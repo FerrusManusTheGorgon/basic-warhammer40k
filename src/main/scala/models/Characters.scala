@@ -5,7 +5,7 @@ object Characters {
 
   val SpaceMarine = GameCharacter(
     characterId = "a617321a-7ad6-11ee-afff-325096b39f47",
-    ballisticSkill = 90,
+    ballisticSkill = 99,
     range = 15,
     weaponSkill = 75,
     movement = 10,
@@ -86,7 +86,7 @@ object Characters {
 
   val OrkWithBigChoppa = GameCharacter(
     characterId = "666c5b72-c1ee-11ee-bxxb-325096b39f47",
-    ballisticSkill = 22,
+    ballisticSkill = 1,
     range = 5,
     weaponSkill = 66,
     movement = 20,
