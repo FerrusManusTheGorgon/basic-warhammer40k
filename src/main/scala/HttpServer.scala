@@ -258,31 +258,31 @@ object MinimalApplication extends cask.MainRoutes {
         } else {
           // Your shoot phase logic here
           val activeUnitsAndTargets = rangeAttackManager.getActiveUnitsAndTargets(board)
-          val unitsWithTargets = activeUnitsAndTargets.filter { case (_, targets) =>
+          val unitsWithRangeTargets = activeUnitsAndTargets.filter { case (_, targets) =>
             targets.nonEmpty
           }
 
           // Construct the message indicating the units with targets
-          val targetsMessage = unitsWithTargets.map { case (unit, targets) =>
+          val targetsMessage = unitsWithRangeTargets.map { case (unit, targets) =>
             s"${unit.avatar} has targets: ${targets.map(t => s"${t.avatar} at (${t.currentPosition.x}, ${t.currentPosition.y})").mkString(", ")}"
           }.mkString("\n")
 
           // If there are no active players with targets, return the corresponding message
-          if (unitsWithTargets.isEmpty) {
+          if (unitsWithRangeTargets.isEmpty) {
             "No enemies in line of sight"
           }
 
           // Update shootingPhaseCompleted for units with empty targets
-          val unitsWithEmptyTargets = activeUnitsAndTargets.filter { case (_, targets) =>
+          val unitsWithEmptyRangeTargets = activeUnitsAndTargets.filter { case (_, targets) =>
             targets.isEmpty
           }.keys.toList
 
-          val updatedUnits = unitsWithEmptyTargets.map { unit =>
+          val updatedUnits = unitsWithEmptyRangeTargets.map { unit =>
             unit.copy(shootingPhaseCompleted = true)
           }
 
           // Update the board with the units that have completed their shooting phase
-          val updatedBoardWithCompletedUnits = updatedUnits.foldLeft(board) { (currentBoard, updatedUnit) =>
+          val updatedBoardWithCompletedUnits = (board.getActiveDeadPlayers ++ updatedUnits).foldLeft(board) { (currentBoard, updatedUnit) =>
             currentBoard.updateActiveUnit(updatedUnit)
           }
 
@@ -323,15 +323,25 @@ object MinimalApplication extends cask.MainRoutes {
               // If it's not the shoot phase, return a message indicating that shoot actions are not allowed
               s"Shoot actions are not allowed in the current phase. Current phase: ${getCurrentPhase(board)}"
             } else {
-              val targetedCharacters = rangeAttackManager.checkRangedAttackHttp(board)
-              val (updatedBoard, attackResult) = rangeAttackManager.performRangedAttackHttp(board.map, board.getActivePlayers.head, coordinates, targetedCharacters, board)
+              val (updatedBoard, attackResult) = rangeAttackManager.performRangedAttackHttp(avatar, coordinates, board)
               // Perform phase transition
               val updatedBoardWithPhase = updatedBoard.phaseManager
+
               sync.put(boardId)(updatedBoardWithPhase) // Update the cached board
               // Print the updated board to local host terminal
               println("Updated board:")
-              updatedBoard.printBoard()
-              s"$attackResult\nPhase transition completed. Current phase: ${getCurrentPhase(updatedBoardWithPhase)}"
+              val victoryMessage = victoryChecker.checkVictory(updatedBoard.getActivePlayers, updatedBoard.getPassivePlayers)
+
+              // Print both attack result, victory message (if available), and phase transition message
+              val phaseTransitionMessage = s"Phase transition completed. Current phase: ${getCurrentPhase(updatedBoardWithPhase)}"
+              println(s"Attack result: $attackResult")
+              victoryMessage.foreach { message =>
+                println(s"Victory message: $message")
+              }
+
+              println(phaseTransitionMessage)
+              // Return the combined message
+              s"$attackResult\n$victoryMessage\n$phaseTransitionMessage"
             }
           case None =>
             "Board not found. Please provide a valid boardId."
@@ -424,31 +434,31 @@ object MinimalApplication extends cask.MainRoutes {
           s"Assault actions are not allowed in the current phase. Current phase: ${getCurrentPhase(board)}"
         } else {
           // Your assault phase logic here
-          val activeUnitsAndTargets = closeCombatManager.getActiveUnitsAndAssaultTargets(board)
-          val unitsWithTargets = activeUnitsAndTargets.filter { case (_, targets) =>
+          val activeUnitsAndAssaultTargets = closeCombatManager.getActiveUnitsAndAssaultTargets(board)
+          val unitsWithAssaultTargets = activeUnitsAndAssaultTargets.filter { case (_, targets) =>
             targets.nonEmpty
           }
 
           // If there are no active players with targets, return the corresponding message
-          if (unitsWithTargets.isEmpty)
+          if (unitsWithAssaultTargets.isEmpty)
             "No enemies in Assault Range"
 
           // Construct the message indicating the units with targets
-          val targetsMessage = unitsWithTargets.map { case (unit, targets) =>
+          val targetsMessage = unitsWithAssaultTargets.map { case (unit, targets) =>
             s"${unit.avatar} has targets: ${targets.map(t => s"${t.avatar} at (${t.currentPosition.x}, ${t.currentPosition.y})").mkString(", ")}"
           }.mkString("\n")
 
           // Update shootingPhaseCompleted for units with empty targets
-          val unitsWithEmptyTargets = activeUnitsAndTargets.filter { case (_, targets) =>
+          val unitsWithEmptyAssaultTargets = activeUnitsAndAssaultTargets.filter { case (_, targets) =>
             targets.isEmpty
           }.keys.toList
 
-          val updatedUnits = unitsWithEmptyTargets.map { unit =>
+          val updatedAssaultUnits = unitsWithEmptyAssaultTargets.map { unit =>
             unit.copy(closeCombatPhaseCompleted = true)
           }
 
           // Update the board with the units that have completed their shooting phase
-          val updatedBoardWithCompletedUnits = updatedUnits.foldLeft(board) { (currentBoard, updatedUnit) =>
+          val updatedBoardWithCompletedUnits = updatedAssaultUnits.foldLeft(board) { (currentBoard, updatedUnit) =>
             currentBoard.updateActiveUnit(updatedUnit)
           }
 
@@ -535,12 +545,20 @@ object MinimalApplication extends cask.MainRoutes {
               val targetedCharacters = closeCombatManager.checkCloseCombatAttackHttp(board)
               val (updatedBoard, attackResult) = closeCombatManager.performCloseCombatAttackHttp(board.map, board.getActivePlayers.head, coordinates, targetedCharacters, board)
               // Perform phase transition
+
               val updatedBoardWithPhase = updatedBoard.phaseManager
               sync.put(boardId)(updatedBoardWithPhase) // Update the cached board
-              // Print the updated board to local host terminal
-              println("Updated board:")
-              updatedBoard.printBoard()
-              s"$attackResult\nPhase transition completed. Current phase: ${getCurrentPhase(updatedBoardWithPhase)}"
+              val victoryMessage = victoryChecker.checkVictory(updatedBoard.getActivePlayers, updatedBoard.getPassivePlayers)
+
+              val phaseTransitionMessage = s"Phase transition completed. Current phase: ${getCurrentPhase(updatedBoardWithPhase)}"
+              println(s"Attack result: $attackResult")
+              victoryMessage.foreach { message =>
+                println(s"Victory message: $message")
+              }
+
+              println(phaseTransitionMessage)
+              // Return the combined message
+              s"$attackResult\n$victoryMessage\n$phaseTransitionMessage"
             }
           case None =>
             "Board not found. Please provide a valid boardId."
@@ -604,5 +622,13 @@ object MinimalApplication extends cask.MainRoutes {
 
 // curl http://localhost:8080/start/
 // curl -X POST http://localhost:8080/start/ -d "y"
+// curl -X POST http://localhost:8080/move -d "6 6 S"
+//curl http://localhost:8080/shoot/
 // curl -X POST http://localhost:8080/move
 // curl -X POST -H "Content-Type: application/json" -d '{"boardId":"123", "moveCoordinates":"3 4"}' http://localhost:8080/move
+// curl http://localhost:8080/shoot/ -d "6 8 S"
+// curl -X POST http://localhost:8080/move -d "1 6 7"
+// curl -X POST http://localhost:8080/move -d "6 8 9"
+//  curl -X POST http://localhost:8080/move -d "9 6 8"
+
+

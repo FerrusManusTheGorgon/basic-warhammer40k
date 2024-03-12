@@ -12,6 +12,8 @@ libraryDependencies ++= Seq(
 //  "com.typesafe.play" %% "play-json" % "2.10.0",
   "com.github.cb372" %% "scalacache-caffeine" % "0.28.0",
   "com.github.cb372" %% "scalacache-core" % "0.28.0",
+  "org.json4s" %% "json4s-jackson" % "3.6.7"
+
 //  "com.github.cb372" %% "scalacache-cats-effect" % "0.28.0"
 
 //  "com.github.cb372" %% "scalacache-caffeine" % "1.0.0-M6",
