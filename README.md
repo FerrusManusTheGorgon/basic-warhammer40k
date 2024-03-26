@@ -36,13 +36,13 @@ Usage
 
 Endpoints
 
-    /start/: GET endpoint to initiate the game. Responds with a prompt asking if the user wants to start the game.
-    /jstart/: POST endpoint to start the game based on JSON input. Expects a JSON object containing a start field with values 'y' or 'n' to indicate whether to start the game.
-    /jmove/: POST endpoint to execute a move action in the game. Expects JSON input with coordinates and avatar information.
-    /shoot/: GET endpoint to check shooter's actions. Responds with a message indicating if shooting actions are allowed in the current phase.
-    /jshoot/: POST endpoint to execute a shoot action in the game. Expects JSON input with coordinates and avatar information.
-    /assault/: GET endpoint to check assault actions. Responds with a message indicating if assault actions are allowed in the current phase.
-    /jassault/: POST endpoint to execute an assault action in the game. Expects JSON input with coordinates and avatar information.
+    /start: GET endpoint to initiate the game. Responds with a prompt asking if the user wants to start the game.
+    /jstart: POST endpoint to start the game based on JSON input. Expects a JSON object containing a start field with values 'y' or 'n' to indicate whether to start the game.
+    /jmove: POST endpoint to execute a move action in the game. Expects JSON input with coordinates and avatar information.
+    /shoot: GET endpoint to check shooter's actions. Responds with a message indicating if shooting actions are allowed in the current phase.
+    /jshoot: POST endpoint to execute a shoot action in the game. Expects JSON input with coordinates and avatar information.
+    /assault: GET endpoint to check assault actions. Responds with a message indicating if assault actions are allowed in the current phase.
+    /jassault: POST endpoint to execute an assault action in the game. Expects JSON input with coordinates and avatar information.
 
 Movement Manager
 
