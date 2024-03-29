@@ -1,5 +1,0 @@
-//package jobs
-//
-//trait GameMap {
-//
-//}
