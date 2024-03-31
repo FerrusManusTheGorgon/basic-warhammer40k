@@ -11,14 +11,14 @@ import scalacache.{Cache, sync}
 import warhammer.game.{CheckVictoryConditions, CloseCombatManager2Http}
 
 import scala.util.Try
-case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChecker: CheckVictoryConditions)(implicit cc: castor.Context,
+case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChecker: CheckVictoryConditions, boardId: String)(implicit cc: castor.Context,
                                                                                                               log: cask.Logger,
                                                                                                               cache: Cache[Board]) extends cask.Routes{
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   @cask.get("/assault")
   def assaulty(request: Request): String = {
-    val boardId = "123" // Assuming the boardId is fixed for now
+//    val boardId = "123" // Assuming the boardId is fixed for now
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {
@@ -82,7 +82,7 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
   def jassault(request: Request): String = {
     val json = parse(request.text())
     val actionRequest = json.extract[ActionRequest]
-    val boardId = "123" // Assuming the boardId is fixed for now
+//    val boardId = "123" // Assuming the boardId is fixed for now
     val avatar = actionRequest.avatar
     val coordinatesOption = for {
       x <- Try(actionRequest.x.toInt).toOption

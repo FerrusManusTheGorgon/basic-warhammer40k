@@ -12,14 +12,14 @@ import warhammer.game.{CheckVictoryConditions, RangeAttackMangerHttp}
 
 import scala.util.Try
 
-case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker: CheckVictoryConditions)(implicit cc: castor.Context,
+case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker: CheckVictoryConditions,boardId: String)(implicit cc: castor.Context,
                                                                                                            log: cask.Logger,
                                                                                                            cache: Cache[Board]) extends cask.Routes{
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   @cask.get("/shoot")
   def checkShooter(request: Request): String = {
-    val boardId = "123" // Assuming the boardId is fixed for now
+//    val boardId = "123" // Assuming the boardId is fixed for now
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {
@@ -84,7 +84,7 @@ case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker
   def jshoot(request: Request): String = {
     val json = parse(request.text())
     val actionRequest = json.extract[ActionRequest]
-    val boardId = "123" // Assuming the boardId is fixed for now
+//    val boardId = "123" // Assuming the boardId is fixed for now
     val avatar = actionRequest.avatar
     val coordinatesOption = for {
       x <- Try(actionRequest.x.toInt).toOption

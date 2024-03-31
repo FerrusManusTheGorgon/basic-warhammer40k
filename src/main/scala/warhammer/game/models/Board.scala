@@ -18,6 +18,7 @@ case class Board(
                 ) {
 
 
+
   def updateActiveUnit(updatedCharacter: GameCharacter): Board = {
     if (isPlayer1Turn) {
       val newCharacters = this.player1.filterNot(_.characterId == updatedCharacter.characterId) :+ updatedCharacter
