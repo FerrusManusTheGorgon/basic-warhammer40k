@@ -12,14 +12,14 @@ import warhammer.game.{CheckVictoryConditions, RangeAttackMangerHttp}
 
 import scala.util.Try
 
-case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker: CheckVictoryConditions,boardId: String)(implicit cc: castor.Context,
-                                                                                                           log: cask.Logger,
-                                                                                                           cache: Cache[Board]) extends cask.Routes{
+case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker: CheckVictoryConditions)(implicit cc: castor.Context,
+                                                                                                          log: cask.Logger,
+                                                                                                          cache: Cache[Board]) extends cask.Routes {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  @cask.get("/shoot")
-  def checkShooter(request: Request): String = {
-//    val boardId = "123" // Assuming the boardId is fixed for now
+  @cask.get("/shoot/:boardId")
+  def checkShooter(request: Request, boardId: String): String = {
+    //    val boardId = "123" // Assuming the boardId is fixed for now
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {
@@ -80,19 +80,17 @@ case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker
   }
 
 
-  @cask.post("/shoot")
-  def jshoot(request: Request): String = {
-    val json = parse(request.text())
-    val actionRequest = json.extract[ActionRequest]
-//    val boardId = "123" // Assuming the boardId is fixed for now
-    val avatar = actionRequest.avatar
-    val coordinatesOption = for {
-      x <- Try(actionRequest.x.toInt).toOption
-      y <- Try(actionRequest.y.toInt).toOption
-    } yield Coordinates(x, y)
+  @cask.post("/shoot/:boardId")
+  def jshoot(request: Request, boardId: String): String = {
+    val actionRequestO = for {
+      json <- Try(parse(request.text())).toOption
+      actionRequest <- Try(json.extract[ActionRequest]).toOption
+    } yield actionRequest
 
-    val result = coordinatesOption match {
-      case Some(coords) =>
+    val result = actionRequestO match {
+      case Some(actionRequest: ActionRequest) =>
+        val avatar = actionRequest.avatar
+        val coords = actionRequest.toCoordinates
         val cachedBoard: Option[Board] = sync.get(boardId)
         cachedBoard match {
           case Some(board) =>
@@ -124,7 +122,7 @@ case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker
             "Board not found. Please provide a valid boardId."
         }
       case None =>
-        "Invalid input provided. Please provide coordinates and an avatar separated by a space."
+        "Invalid input provided. Please provide coordinates and an avatar as json."
     }
 
     result

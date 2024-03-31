@@ -9,13 +9,13 @@ import scalacache.modes.sync.mode
 import scalacache.{Cache, sync}
 import warhammer.game.MovementManagerHttp
 
-case class MoveRoute(movementManager: MovementManagerHttp, boardId: String)(implicit cc: castor.Context,
+case class MoveRoute(movementManager: MovementManagerHttp)(implicit cc: castor.Context,
                                                            log: cask.Logger,
                                                            cache: Cache[Board]) extends cask.Routes {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   @cask.post("/jmove")
-  def jmove(request: Request): String = {
+  def jmove(request: Request, boardId: String): String = {
 //    val boardId = boardId // Assuming the boardId is fixed for now
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)

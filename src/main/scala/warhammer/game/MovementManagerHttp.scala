@@ -9,11 +9,23 @@ import scala.collection.mutable.Queue
 class MovementManagerHttp(implicit cache: Cache[Board]) {
 
 
-  def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameCharacter, passivePlayers: List[GameCharacter]): Boolean = {
-    map.isWithinBounds(newCoordinates) && passivePlayers.forall { passivePlayer =>
-      getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayer).isDefined
-    }
+//  def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameCharacter, passivePlayers: List[GameCharacter]): Boolean = {
+//    map.isWithinBounds(newCoordinates) && passivePlayers.forall { passivePlayer =>
+//      getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayer).isDefined
+//    }
+//  }
+def isValidMove(map: MapConfig,
+                newCoordinates: Coordinates,
+                activePlayerUnit: GameCharacter,
+                passivePlayers: List[GameCharacter],
+                activePlayers: List[GameCharacter]): Boolean = {
+  val activeTeammates = activePlayers.filterNot(_ == activePlayerUnit) // Remove activePlayerUnit from the list
+  val noConflictWithTeammates = activeTeammates.forall(_.currentPosition != newCoordinates) // Check for conflicts with teammates
+  val validPathToPassivePlayers = passivePlayers.forall { passivePlayer =>
+    getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayer).isDefined
   }
+  map.isWithinBounds(newCoordinates) && noConflictWithTeammates && validPathToPassivePlayers
+}
 
 
   //TODO

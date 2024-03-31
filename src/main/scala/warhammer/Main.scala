@@ -19,14 +19,14 @@ object Main extends cask.Main {
   val movementManager = new MovementManagerHttp
   val victoryChecker = new CheckVictoryConditions
   // Generate a unique boardId using UUID
-  val boardId = UUID.randomUUID().toString
-  val startRoutes = StartRoutes(boardId)
+//  val boardId = UUID.randomUUID().toString
+//  val startRoutes = StartRoutes(boardId)
 
 
   val allRoutes = Seq(
-    StartRoutes(boardId),
-    MoveRoute(movementManager, boardId),
-    ShootRoutes(rangeAttackManager, victoryChecker, boardId),
-    AssaultRoutes(closeCombatManager, victoryChecker, boardId)
+    StartRoutes(),
+    MoveRoute(movementManager),
+    ShootRoutes(rangeAttackManager, victoryChecker),
+    AssaultRoutes(closeCombatManager, victoryChecker)
   )
 }
