@@ -14,9 +14,9 @@ case class MoveRoute(movementManager: MovementManagerHttp)(implicit cc: castor.C
                                                            cache: Cache[Board]) extends cask.Routes {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  @cask.post("/jmove")
-  def jmove(request: Request): String = {
-    val boardId = "123" // Assuming the boardId is fixed for now
+  @cask.post("/jmove/:boardId")
+  def jmove(request: Request, boardId: String): String = {
+//    val boardId = boardId // Assuming the boardId is fixed for now
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {

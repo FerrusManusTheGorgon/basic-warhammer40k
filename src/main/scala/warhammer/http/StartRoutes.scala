@@ -7,9 +7,11 @@ import org.json4s.jackson.JsonMethods.parse
 import scalacache.modes.sync.mode
 import scalacache.{Cache, sync}
 import warhammer.game.models.{Board, GameInitializer, Maps}
+import java.util.UUID
 
 
-case class StartRoutes()(implicit cc: castor.Context,
+case class
+StartRoutes()(implicit cc: castor.Context,
                          log: cask.Logger,
                          cache: Cache[Board]) extends cask.Routes {
   implicit val formats: DefaultFormats.type = DefaultFormats
@@ -36,7 +38,7 @@ case class StartRoutes()(implicit cc: castor.Context,
     val userInput = startGameRequest.start.trim.toLowerCase
     if (userInput == "y") {
       // Generate a unique boardId using UUID
-      val boardId = "123"
+      val boardId = UUID.randomUUID().toString
       // Call the method to generate the board string
       val board = Board(
         boardId = boardId,

@@ -16,9 +16,8 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
                                                                                                               cache: Cache[Board]) extends cask.Routes{
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  @cask.get("/assault")
-  def assaulty(request: Request): String = {
-    val boardId = "123" // Assuming the boardId is fixed for now
+  @cask.get("/assault/:boardId")
+  def assaulty(request: Request, boardId: String): String = {
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {
@@ -27,7 +26,6 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
           // If it's not the shoot phase, return a message indicating that shoot actions are not allowed
           s"Assault actions are not allowed in the current phase. Current phase: ${board.getCurrentPhase(board)}"
         } else {
-          // Your assault phase logic here
           val activeUnitsAndAssaultTargets = closeCombatManager.getActiveUnitsAndAssaultTargets(board)
           val unitsWithAssaultTargets = activeUnitsAndAssaultTargets.filter { case (_, targets) =>
             targets.nonEmpty
@@ -78,19 +76,17 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
   }
 
 
-  @cask.post("/jassault")
-  def jassault(request: Request): String = {
-    val json = parse(request.text())
-    val actionRequest = json.extract[ActionRequest]
-    val boardId = "123" // Assuming the boardId is fixed for now
-    val avatar = actionRequest.avatar
-    val coordinatesOption = for {
-      x <- Try(actionRequest.x.toInt).toOption
-      y <- Try(actionRequest.y.toInt).toOption
-    } yield Coordinates(x, y)
+  @cask.post("/jassault/:boardId")
+  def jassault(request: Request, boardId: String): String = {
+    val actionRequestO = for {
+      json <- Try(parse(request.text())).toOption
+      actionRequest <- Try(json.extract[ActionRequest]).toOption
+    } yield actionRequest
 
-    val result = coordinatesOption match {
-      case Some(coords) =>
+    val result = actionRequestO match {
+      case Some(actionRequest: ActionRequest) =>
+        val avatar = actionRequest.avatar
+        val coords = actionRequest.toCoordinates
         val cachedBoard: Option[Board] = sync.get(boardId)
         cachedBoard match {
           case Some(board) =>
@@ -121,7 +117,7 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
             "Board not found. Please provide a valid boardId."
         }
       case None =>
-        "Invalid input provided. Please provide coordinates and an avatar separated by a space."
+        "Invalid input provided. Please provide coordinates and an avatar in json."
     }
 
     result
