@@ -16,7 +16,8 @@ libraryDependencies ++= Seq(
   "com.github.cb372" %% "scalacache-core" % "0.28.0",
   "org.json4s" %% "json4s-jackson" % "3.6.7",
   "com.lihaoyi" %% "utest" % "0.8.2" % "test",
-  "com.lihaoyi" %% "requests" % "0.8.0"
+  "com.lihaoyi" %% "requests" % "0.8.0",
+  "org.scalatest" %% "scalatest" % "3.2.10" % "test"
 )
 
 testFrameworks +=
