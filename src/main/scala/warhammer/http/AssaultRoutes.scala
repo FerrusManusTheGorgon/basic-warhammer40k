@@ -18,7 +18,6 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
 
   @cask.get("/assault/:boardId")
   def assaulty(request: Request, boardId: String): String = {
-//    val boardId = "123" // Assuming the boardId is fixed for now
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {
@@ -27,7 +26,6 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
           // If it's not the shoot phase, return a message indicating that shoot actions are not allowed
           s"Assault actions are not allowed in the current phase. Current phase: ${board.getCurrentPhase(board)}"
         } else {
-          // Your assault phase logic here
           val activeUnitsAndAssaultTargets = closeCombatManager.getActiveUnitsAndAssaultTargets(board)
           val unitsWithAssaultTargets = activeUnitsAndAssaultTargets.filter { case (_, targets) =>
             targets.nonEmpty
