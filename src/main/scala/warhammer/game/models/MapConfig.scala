@@ -34,38 +34,6 @@ case class MapConfig(
       coordinates.y >= 1 && coordinates.y <= verticalLength
   }
 
-  //  def printMap(
-  //                activePlayerUnit: GameUnit,
-  //                passivePlayerUnit: GameUnit,
-  //                includeActiveMovementRange: Boolean = false,
-  //                includeActiveShootingRange: Boolean = false
-  //              ): Unit = {
-  //    val movementRange = if (includeActiveMovementRange) {
-  //      Map.empty[Coordinates, String]
-  //    } else Map.empty[Coordinates, String]
-  //
-  //    val shootingRange = if (includeActiveMovementRange) {
-  //      Map.empty[Coordinates, String]
-  //    } else Map.empty[Coordinates, String]
-  //
-  //    val boardState = layout + (
-  //      activePlayerUnit.coordinates -> activePlayerUnit.character.avatar,
-  //      passivePlayerUnit.coordinates -> passivePlayerUnit.character.avatar
-  //    ) ++ movementRange
-  //      ++ shootingRange
-  //
-  //    println(HORIZONTAL_BORDER)
-  //
-  //    VERTICAL_RANGE.reverse.foreach { y =>
-  //      val row = HORIZONTAL_RANGE.map { x =>
-  //        s"|  ${boardState(Coordinates(x, y))}  "
-  //      }.reduce((a, b) => a + b)
-  //      println(f"$y%4d  " + row + "|")
-  //      println(HORIZONTAL_BORDER)
-  //    }
-  //
-  //    println("      " + HORIZONTAL_RANGE.map(x => f"$x%4d").mkString("  "))
-  //  }
 
 }
 

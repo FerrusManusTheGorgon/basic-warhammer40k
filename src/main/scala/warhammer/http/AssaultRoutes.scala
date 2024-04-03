@@ -8,12 +8,13 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 import scalacache.modes.sync.mode
 import scalacache.{Cache, sync}
-import warhammer.game.{CheckVictoryConditions, CloseCombatManager2Http}
+import warhammer.game.{CheckVictoryConditions, CloseCombatManager}
 
 import scala.util.Try
-case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChecker: CheckVictoryConditions)(implicit cc: castor.Context,
-                                                                                                              log: cask.Logger,
-                                                                                                              cache: Cache[Board]) extends cask.Routes{
+
+case class AssaultRoutes(closeCombatManager: CloseCombatManager, victoryChecker: CheckVictoryConditions)(implicit cc: castor.Context,
+                                                                                                         log: cask.Logger,
+                                                                                                         cache: Cache[Board]) extends cask.Routes {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   @cask.get("/assault/:boardId")
@@ -76,8 +77,8 @@ case class AssaultRoutes(closeCombatManager: CloseCombatManager2Http, victoryChe
   }
 
 
-  @cask.post("/jassault/:boardId")
-  def jassault(request: Request, boardId: String): String = {
+  @cask.post("/assault/:boardId")
+  def assault(request: Request, boardId: String): String = {
     val actionRequestO = for {
       json <- Try(parse(request.text())).toOption
       actionRequest <- Try(json.extract[ActionRequest]).toOption

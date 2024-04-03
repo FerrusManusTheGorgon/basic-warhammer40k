@@ -7,16 +7,15 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 import scalacache.modes.sync.mode
 import scalacache.{Cache, sync}
-import warhammer.game.MovementManagerHttp
+import warhammer.game.MovementManager
 
-case class MoveRoute(movementManager: MovementManagerHttp)(implicit cc: castor.Context,
-                                                           log: cask.Logger,
-                                                           cache: Cache[Board]) extends cask.Routes {
+case class MoveRoute(movementManager: MovementManager)(implicit cc: castor.Context,
+                                                       log: cask.Logger,
+                                                       cache: Cache[Board]) extends cask.Routes {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
-  @cask.post("/jmove/:boardId")
-  def jmove(request: Request, boardId: String): String = {
-//    val boardId = boardId // Assuming the boardId is fixed for now
+  @cask.post("/move/:boardId")
+  def move(request: Request, boardId: String): String = {
     // Retrieve the cached board using the boardId
     val cachedBoard: Option[Board] = sync.get(boardId)
     cachedBoard match {

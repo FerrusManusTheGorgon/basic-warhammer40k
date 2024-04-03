@@ -1,9 +1,7 @@
 package warhammer.game
 
-
 import warhammer.game.models._
 import org.scalatest.funspec.AnyFunSpec
-import warhammer.Main.cache
 import warhammer.game.models.Characters.SpaceMarine
 
 class CheckVictoryConditionsSpec extends AnyFunSpec {

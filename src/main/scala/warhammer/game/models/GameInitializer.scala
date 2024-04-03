@@ -21,7 +21,7 @@ object GameInitializer {
     val unit2 = createGameUnit(player2Unit, player2UnitLocation)
 
     val player2BigShootaUnit = Characters.OrkWithBigShoota
-    val player2BigShootaUnitLocation = Coordinates(3, 5)
+    val player2BigShootaUnitLocation = Coordinates(8, 10)
     val unit3 = createGameUnit(player2BigShootaUnit, player2BigShootaUnitLocation)
 
     val player2BigChoppaUnit = Characters.OrkWithBigChoppa
@@ -29,7 +29,7 @@ object GameInitializer {
     val unit4 = createGameUnit(player2BigChoppaUnit, player2BigChoppaUnitLocation)
 
     val player2SkorchaUnit = Characters.OrkWithScorcha
-    val player2SkorchaUnitLocation = Coordinates(1, 4)
+    val player2SkorchaUnitLocation = Coordinates(1, 10)
     val unit5 = createGameUnit(player2SkorchaUnit, player2SkorchaUnitLocation)
 
     val player1Units = List(unit1)

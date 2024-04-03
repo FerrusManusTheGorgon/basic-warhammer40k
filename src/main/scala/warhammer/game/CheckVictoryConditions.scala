@@ -5,12 +5,7 @@ import warhammer.game.models.GameCharacter
 class CheckVictoryConditions {
 
   def checkVictory(activeUnits: List[GameCharacter], passiveUnits: List[GameCharacter]): String = {
-    println("Checking victory conditions...")
-    println("Active units:")
-    activeUnits.foreach(println)
 
-    println("Passive units:")
-    passiveUnits.foreach(println)
 
     if (passiveUnits.exists(x => x.state == "alive")) {
       println("The Battle Rages On")

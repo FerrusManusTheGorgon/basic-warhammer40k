@@ -8,13 +8,13 @@ import org.json4s.DefaultFormats
 import org.json4s.jackson.JsonMethods.parse
 import scalacache.modes.sync.mode
 import scalacache.{Cache, sync}
-import warhammer.game.{CheckVictoryConditions, RangeAttackMangerHttp}
+import warhammer.game.{CheckVictoryConditions, RangeAttackManger}
 
 import scala.util.Try
 
-case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker: CheckVictoryConditions)(implicit cc: castor.Context,
-                                                                                                          log: cask.Logger,
-                                                                                                          cache: Cache[Board]) extends cask.Routes {
+case class ShootRoutes(rangeAttackManager: RangeAttackManger, victoryChecker: CheckVictoryConditions)(implicit cc: castor.Context,
+                                                                                                      log: cask.Logger,
+                                                                                                      cache: Cache[Board]) extends cask.Routes {
   implicit val formats: DefaultFormats.type = DefaultFormats
 
   @cask.get("/shoot/:boardId")
@@ -38,11 +38,11 @@ case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker
           val targetsMessage = unitsWithRangeTargets.map { case (unit, targets) =>
             s"${unit.avatar} has targets: ${targets.map(t => s"${t.avatar} at (${t.currentPosition.x}, ${t.currentPosition.y})").mkString(", ")}"
           }.mkString("\n")
-
-          // If there are no active players with targets, return the corresponding message
-          if (unitsWithRangeTargets.isEmpty) {
-            "No enemies in line of sight"
-          }
+//
+//          // If there are no active players with targets, return the corresponding message
+//          if (unitsWithRangeTargets.isEmpty) {
+//            "No enemies in line of sight"
+//          }
 
           // Update shootingPhaseCompleted for units with empty targets
           val unitsWithEmptyRangeTargets = activeUnitsAndTargets.filter { case (_, targets) =>
@@ -81,7 +81,7 @@ case class ShootRoutes(rangeAttackManager: RangeAttackMangerHttp, victoryChecker
 
 
   @cask.post("/shoot/:boardId")
-  def jshoot(request: Request, boardId: String): String = {
+  def shoot(request: Request, boardId: String): String = {
     val actionRequestO = for {
       json <- Try(parse(request.text())).toOption
       actionRequest <- Try(json.extract[ActionRequest]).toOption

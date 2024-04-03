@@ -19,13 +19,6 @@ object StartRoutesSpec extends TestSuite {
 
   val tests = Tests {
     test("MinimalApplication2") - withServer(Main) { host =>
-      //      val success = requests.get(host)
-
-      //      success.text() ==> "Hello World!"
-      //      success.statusCode ==> 200
-
-
-      //      requests.get(s"$host/start", check = false).text() ==> "Would you like to start the game (y/n)?"
 
       // Test POST request
       // Send a request to the /start endpoint to generate and cache a board
@@ -36,20 +29,20 @@ object StartRoutesSpec extends TestSuite {
       assert(postResponse.statusCode == 200)
 
       // Extract only the first 10 characters of the expected and actual result strings
-      val expectedSubstring = "\"Board generated with boardId: 123 and cached.\\n------+- - -+- - -+- - -+- - -+- - -+- - -+- - -+- - -+- - -+- - -+".take(70)
-      val actualSubstring = postResponse.text().take(70)
-
+      val expectedSubstring1 = "Board generated with boardId: "
+      val expectedSubstring2 = " and cached."
+      val response = postResponse.text()
+      val actualSubstring1 = response.take(30)
+      val actualSubstring2 = response.slice(66, 78)
       // Validate the first 10 characters of the response text
-      assert(expectedSubstring == actualSubstring)
-      assert(postResponse.statusCode == 200)
+      assert(expectedSubstring1 == actualSubstring1)
+      assert(expectedSubstring2 == actualSubstring2)
     }
+
   }
+
 }
 
-  //      requests.get(s"$host/doesnt-exist", check = false).statusCode ==> 404
-//
-//      requests.post(s"$host/do-thing", data = "hello").text() ==> "olleh"
-//
-//      requests.delete(s"$host/do-thing", check = false).statusCode ==> 405
-    
+
+
 

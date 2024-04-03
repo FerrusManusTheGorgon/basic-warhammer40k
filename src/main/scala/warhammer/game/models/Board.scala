@@ -3,7 +3,6 @@ package warhammer.game.models
 import UnitState.{ALIVE_STATE, DEAD_STATE}
 
 
-
 case class Board(
                   boardId: String,
                   player1: List[GameCharacter],
@@ -16,7 +15,6 @@ case class Board(
                   isPlayer1Turn: Boolean,
                   turnNumber: Int
                 ) {
-
 
 
   def updateActiveUnit(updatedCharacter: GameCharacter): Board = {
@@ -181,37 +179,6 @@ case class Board(
     }
 
 
-    // Update the phase flags first
-    //    val updatedBoardWithPhases = this.copy(
-    //      isMovePhase = newIsMovePhase,
-    //      isShootingPhase = newIsShootingPhase,
-    //      isCloseCombatPhase = newIsCloseCombatPhase
-    //    )
-
-    // Transition from close combat phase back to move phase and switch player turns
-    //    val updatedBoardWithTurn = if (newIsMovePhase) {
-    //      updatedBoardWithPhases.copy(
-    //        isPlayer1Turn = !isPlayer1Turn,
-    //        turnNumber = turnNumber + 1
-    //      )
-    //    } else {
-    //      updatedBoardWithPhases
-    //    }
-
-    // Reset phaseCompleted flags based on the phase transition
-    //    val updatedActiveUnits = activeUnits.map { character =>
-    //      character.copy(
-    //        movePhaseCompleted = newIsShootingPhase,
-    //        shootingPhaseCompleted = newIsCloseCombatPhase,
-    //        closeCombatPhaseCompleted = newIsMovePhase
-    //      )
-    //    }
-
-    // Update the board with updated active units
-    //    updatedBoardWithTurn.copy(
-    //      player1 = if (isPlayer1Turn) updatedActiveUnits else player1,
-    //      player2 = if (!isPlayer1Turn) updatedActiveUnits else player2
-    //    )
   }
 
   def handleEndOfMovementPhase: Board = {
@@ -241,7 +208,6 @@ case class Board(
       isTopOfTurn = !this.isTopOfTurn
     )
   }
-
 
 
 }

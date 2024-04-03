@@ -6,27 +6,27 @@ import scalacache._
 import scala.collection.mutable.Queue
 
 
-class MovementManagerHttp(implicit cache: Cache[Board]) {
+class MovementManager(implicit cache: Cache[Board]) {
 
 
-//  def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameCharacter, passivePlayers: List[GameCharacter]): Boolean = {
-//    map.isWithinBounds(newCoordinates) && passivePlayers.forall { passivePlayer =>
-//      getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayer).isDefined
-//    }
-//  }
-def isValidMove(map: MapConfig,
-                newCoordinates: Coordinates,
-                activePlayerUnit: GameCharacter,
-                passivePlayers: List[GameCharacter],
-                activePlayers: List[GameCharacter]): Boolean = {
-  val activeTeammates = activePlayers.filterNot(_ == activePlayerUnit) // Remove activePlayerUnit from the list
-  val noConflictWithTeammates = activeTeammates.forall(_.currentPosition != newCoordinates) // Check for conflicts with teammates
-  val validPathToPassivePlayers = passivePlayers.forall { passivePlayer =>
-    getShortestPath(map, newCoordinates, activePlayerUnit, List(passivePlayer)).isDefined
+  //  def isValidMove(map: MapConfig, newCoordinates: Coordinates, activePlayerUnit: GameCharacter, passivePlayers: List[GameCharacter]): Boolean = {
+  //    map.isWithinBounds(newCoordinates) && passivePlayers.forall { passivePlayer =>
+  //      getShortestPath(map, newCoordinates, activePlayerUnit, passivePlayer).isDefined
+  //    }
+  //  }
+  def isValidMove(map: MapConfig,
+                  newCoordinates: Coordinates,
+                  activePlayerUnit: GameCharacter,
+                  passivePlayers: List[GameCharacter],
+                  activePlayers: List[GameCharacter]): Boolean = {
+    val activeTeammates = activePlayers.filterNot(_ == activePlayerUnit) // Remove activePlayerUnit from the list
+    val noConflictWithTeammates = activeTeammates.forall(_.currentPosition != newCoordinates) // Check for conflicts with teammates
+    val validPathToPassivePlayers = passivePlayers.forall { passivePlayer =>
+      getShortestPath(map, newCoordinates, activePlayerUnit, List(passivePlayer)).isDefined
+    }
+
+    map.isWithinBounds(newCoordinates) && noConflictWithTeammates && validPathToPassivePlayers
   }
-
-  map.isWithinBounds(newCoordinates) && noConflictWithTeammates && validPathToPassivePlayers
-}
 
 
   //TODO
@@ -66,7 +66,7 @@ def isValidMove(map: MapConfig,
         val newY = current.y + dy
         if (map.isWithinBounds(Coordinates(newX, newY)) && //checks whether the new coordinates are within the bounds of the map
           !visited(newX)(newY) && //Checks if the cell with the new coordinates has not been visited before
-          map.layout.getOrElse(Coordinates(newX, newY), "") != map.BLOCKED_SQUARE &&  //Checks if the cell with the new coordinates is not blocked on the map
+          map.layout.getOrElse(Coordinates(newX, newY), "") != map.BLOCKED_SQUARE && //Checks if the cell with the new coordinates is not blocked on the map
           !passivePlayers.exists(_.currentPosition == Coordinates(newX, newY)) && // checks if there are no passive players at the new coordinates
           steps(current.x)(current.y) + 1 <= maxMovement) { //Ensures that the total number of steps taken so far is within the maximum allowed movement
           println(s"Enqueuing cell: ($newX, $newY)")
@@ -94,8 +94,7 @@ def isValidMove(map: MapConfig,
           val updatedBoard = board.updateActiveUnit(updatedUnit)
           val boardString = updatedBoard.printBoard()
           (updatedBoard, s"$boardString\n$avatar held its ground")
-        } else if (isValidMove(board.map, moveCoordinates, currentUnit, board.getPassivePlayers, board.getActivePlayers))
-        {
+        } else if (isValidMove(board.map, moveCoordinates, currentUnit, board.getPassivePlayers, board.getActivePlayers)) {
           // Update the unit's position
           val updatedUnit = currentUnit.copy(currentPosition = moveCoordinates, movePhaseCompleted = true)
           val updatedBoard = board.updateActiveUnit(updatedUnit)

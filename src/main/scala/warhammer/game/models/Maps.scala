@@ -16,7 +16,6 @@ case object Maps {
       Coordinates(3, 9),
       Coordinates(6, 1),
       Coordinates(6, 2),
-//      Coordinates(15, 6),
       Coordinates(5, 7),
       Coordinates(5, 8),
       Coordinates(9, 7),
@@ -24,7 +23,6 @@ case object Maps {
       Coordinates(9, 9),
       Coordinates(9, 10)
     )
-//    spaceMarinePos = List("2,2"),
-//    orkPos = List("11,11")
+
   )
 }

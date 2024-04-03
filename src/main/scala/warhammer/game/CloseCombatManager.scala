@@ -9,7 +9,7 @@ import scala.io.StdIn
 import scala.util.Random
 
 
-class CloseCombatManager2Http (implicit cache: Cache[Board]) {
+class CloseCombatManager(implicit cache: Cache[Board]) {
 
 
   @scala.annotation.tailrec
@@ -58,9 +58,6 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
     }
   }
 
-  //  def meleeMessage(prefix: String, passivePlayer: GameUnit): Unit = {
-  //    println(prefix + s"${passivePlayer.character.avatar} at coordinates (${passivePlayer.coordinates.x}, ${passivePlayer.coordinates.y})!")
-  //  }
 
   def checkCloseCombatAttack(mapConfig: MapConfig, activePlayer: GameCharacter, passivePlayers: List[GameCharacter]): List[GameCharacter] = {
     println("Checking close combat attack...")
@@ -132,59 +129,10 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
   }
 
 
-  def performCloseCombatAttackHttpIfInRange(assaultCoordinates: Coordinates, boardId: String, avatar: String): String = {
-
-    val cachedBoard: Option[Board] = sync.get(boardId)
-    cachedBoard match {
-      case Some(board) =>
-        // Get the active player's units from the board
-        val activePlayerUnits = board.getActivePlayers
-        val currentAssaultUnitOption = activePlayerUnits.find(p => p.avatar == avatar && !p.closeCombatPhaseCompleted)
-        currentAssaultUnitOption match {
-          case Some(currentAssaultUnit) =>
-            if (assaultCoordinates == Coordinates(100, 100)) {
-              // Special case for coordinates (100, 100)
-              val updatedUnit = currentAssaultUnit.copy(closeCombatPhaseCompleted = true)
-              val updatedBoard = board.updateActiveUnit(updatedUnit)
-              sync.put(boardId)(updatedBoard)
-              updatedBoard.printBoard()
-              s"$avatar held its attack"
-            } else {
-              // Check ranged attack for the current shoot unit
-              checkCloseCombatAttack(board.map, currentAssaultUnit, board.getPassivePlayers) match {
-                case Nil =>
-                  s"No enemies in assault range  for ${currentAssaultUnit.avatar} at coordinates: $assaultCoordinates"
-                case targets =>
-                  // If there are potential targets, print them
-                  println("Potential targets for assault:")
-                  targets.foreach { target =>
-                    println(s"- ${target.avatar} at coordinates (${target.currentPosition.x}, ${target.currentPosition.y}), state: ${target.state}")
-                    val updatedTarget = target.copy(avatar = " ", state = "dead")
-                    board.updateActiveUnit(updatedTarget)
-                  }
-
-                  val updatedAssaultUnit = currentAssaultUnit.copy(closeCombatPhaseCompleted = true)
-                  // Update the board with the modified targets
-                  val updatedBoard = board.updateActiveUnit(updatedAssaultUnit)
-                  sync.put(boardId)(updatedBoard)
-                  updatedBoard.printBoard()
-                  "Close Combat attack performed successfully."
-              }
-            }
-          case None =>
-            "No units available for Close Combat attack."
-        }
-      case None =>
-        // If the board with the provided boardId is not found in the cache, return an error message
-        "Board not found. Please provide a valid boardId."
-    }
-  }
-
   def checkCloseCombatAttackHttp(board: Board): List[GameCharacter] = {
     val currentAssaultUnitOption = board.getActivePlayers.find(p => !p.closeCombatPhaseCompleted && p.state == "alive").get
     checkCloseCombatAttack(board.map, currentAssaultUnitOption, board.getPassivePlayers)
-    //
-    //
+
   }
 
 
@@ -215,33 +163,6 @@ class CloseCombatManager2Http (implicit cache: Cache[Board]) {
     }
   }
 
-  final def activeUnitsNotInAssaultRange(activeUnits: List[GameCharacter], map: MapConfig, passiveUnits: List[GameCharacter]): List[GameCharacter] = {
-    activeUnits.flatMap { unit =>
-      println(s"Processing unit: ${unit.avatar}") // Print the current unit being processed
-
-      // Get the current status of passive units, filtering out dead units
-      val currentPassiveUnits = passiveUnits.filter(_.state == ALIVE_STATE)
-
-      // Check if the current unit can perform a close combat attack
-      val potentialTargets = checkCloseCombatAttack(map, unit, currentPassiveUnits)
-
-      if (potentialTargets.isEmpty) {
-        // If there are no potential targets, update the closeCombatPhaseCompleted status of the active player
-        val updatedUnit = unit.copy(closeCombatPhaseCompleted = true)
-        println(s"No enemies in assault range. Setting closeCombatPhaseCompleted for ${updatedUnit.avatar}")
-
-        // Print the unit before and after updating the closeCombatPhaseCompleted field
-        println("Before update:")
-        println(unit)
-        println("After update:")
-        println(updatedUnit)
-
-        Some(updatedUnit)
-      } else {
-        None // Return None if there are potential targets
-      }
-    }
-  }
 
   def getActiveUnitsAndAssaultTargets(board: Board): Map[GameCharacter, List[GameCharacter]] = {
     val mapConfig = board.map
